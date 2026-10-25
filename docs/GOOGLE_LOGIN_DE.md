@@ -1,69 +1,55 @@
-# Mit Google registriert: E-Mail und Passwort für Bambu Open Network
+# Google-Login: Ein Bambu-Passwort für die Integration setzen
 
-Bambu Open Network meldet sich mit der E-Mail-Adresse und einem eigenen Passwort
-deines Bambu-Kontos an. Wenn du bisher „Mit Google anmelden“ verwendest, richte
-diesen zusätzlichen Anmeldeweg im bestehenden Bambu-Konto ein.
+Das aktuelle Anmeldeformular von Bambu Open Network verwendet die
+**E-Mail-Adresse und ein Passwort deines Bambu-Kontos**.
+Einen Button **„Mit Google anmelden“** gibt es dort nicht.
+Verwende hier ein Bambu-Passwort, nicht dein Google-Passwort.
 
-## 1. Das richtige Konto und die E-Mail-Adresse prüfen
+Für Konten, die über Google oder einen anderen OAuth-Anbieter angelegt wurden,
+beschreibt die ha-bambulab-Dokumentation den folgenden Weg.
 
-1. Öffne **Bambu Handy** und melde dich wie gewohnt mit Google an.
-2. Prüfe, dass deine vorhandenen Drucker in diesem Konto angezeigt werden.
-3. Öffne unten rechts dein Profil (**Ich / Me**, Personensymbol) und die
-   Kontodaten beziehungsweise **Kontosicherheit / Account Security**.
-4. Prüfe die dort hinterlegte E-Mail-Adresse. Verwende später genau die Adresse,
-   die zu diesem Bambu-Konto gehört.
+## 1. Das Passwort in Bambu Handy setzen
 
-Falls Bambu noch eine E-Mail-Verknüpfung verlangt, hinterlege dort über die
-angebotene Funktion zum Hinzufügen/Verknüpfen deine erreichbare Adresse und
-bestätige den zugesandten Code. Eine bereits hinterlegte, erreichbare Adresse
-musst du dafür nicht ändern.
+1. **Bambu Handy** öffnen und wie gewohnt mit Google anmelden.
+2. Prüfen, dass deine bisherigen Drucker angezeigt werden. So weißt du, dass du im richtigen Konto bist.
+3. Unten rechts auf das **Profil-/Personensymbol** tippen.
+4. **Kontosicherheit / Account Security → Passwort ändern / Change Password** öffnen.
+5. Die von Bambu angebotenen Bestätigungsschritte durchgehen und ein Bambu-Passwort setzen.
 
-Die Bezeichnungen für die Kontodaten können je nach App-Version abweichen.
-Falls keine E-Mail-Adresse angezeigt und keine Verknüpfung angeboten wird,
-kläre die Kontozuordnung über die Bambu-Kontoverwaltung oder den Bambu-Support.
-Erstelle dafür kein zweites Konto: Die Drucker sollen an deinem bisherigen
-Konto gebunden bleiben.
+Für die Integration brauchst du die E-Mail-Adresse, die zu diesem bestehenden
+Bambu-Konto gehört. Falls sie unklar ist, prüfe zuerst deine Bambu-Kontodaten.
+Du musst für diese Einrichtung keine E-Mail-Adresse ändern.
 
-## 2. Ein Bambu-Passwort setzen
+## 2. Bei Bambu Open Network anmelden
 
-1. Öffne **Kontosicherheit / Account Security**.
-2. Wähle **Passwort ändern / Change Password**.
-3. Fordere den Bestätigungscode an, wenn Bambu danach fragt.
-4. Gib den Code aus der E-Mail ein und lege ein eigenes Bambu-Passwort fest.
+- **Neue Einrichtung:** **Einstellungen → Geräte & Dienste → Integration hinzufügen → Bambu Open Network** öffnen.
+- **Bereits eingerichtet:** **Einstellungen → Geräte & Dienste → Bambu Open Network → Konfigurieren** öffnen.
 
-Diesen Weg empfiehlt auch die ha-bambulab-Dokumentation für OAuth-Konten.
+**Mit Bambu Cloud anmelden** wählen. Deine Kontoregion, die E-Mail-Adresse des
+Bambu-Kontos und das gerade gesetzte Bambu-Passwort eingeben.
+Einen eventuell angeforderten Bestätigungscode eingeben und die bisherigen Drucker auswählen.
 
-Falls die App das Setzen nicht anbietet, nutze
-[Bambus „Passwort vergessen“-Seite](https://bambulab.com/en/account/forgot-password).
-Gib die E-Mail-Adresse aus Schritt 1 ein, fordere den Code an und setze damit
-ein neues Passwort. Wenn das Konto nicht gefunden wird, prüfe die Adresse
-wieder im noch mit Google angemeldeten Bambu-Konto.
+Falls keine Drucker auftauchen, Konto und Region mit Bambu Handy vergleichen.
+Vorhandene Druckereinträge müssen nicht gelöscht oder neu gebunden werden.
 
-## 3. Den E-Mail-Login testen
+## Wenn „Passwort ändern“ fehlt
 
-Öffne [Bambus Anmeldeseite](https://bambulab.com/en/sign-in) und melde dich über
-die E-Mail-Anmeldung mit deiner Bambu-Adresse und dem neu gesetzten
-Bambu-Passwort an. Prüfe anschließend, dass du im richtigen Konto bist.
+Menübezeichnungen und verfügbare Kontofunktionen können je nach App-Version
+oder Konto abweichen. Die veröffentlichte ha-bambulab-Anleitung beschreibt
+den Weg oben. Einen allgemein gültigen Ersatzweg über E-Mail-Verknüpfung
+oder „Passwort vergessen“ belegt sie für Google-Konten nicht.
 
-## 4. In Home Assistant anmelden
+Falls die App diesen Weg nicht anbietet oder Bambu ihn ablehnt, kläre die
+Anmeldemöglichkeiten für dein bestehendes Konto über den
+[Bambu-Support](https://bambulab.com/en/support).
+Ein zweites Konto anzulegen gehört nicht zu dieser Einrichtung.
 
-1. **Einstellungen → Geräte & Dienste → Bambu Open Network** öffnen.
-2. Bei bestehender Einrichtung **Konfigurieren → Bambu Cloud login** wählen.
-3. Deine Kontoregion, die geprüfte E-Mail-Adresse und das Bambu-Passwort eingeben.
-4. Den angeforderten E-Mail-/SMS- oder 2FA-Code eingeben.
-5. Deine vorhandenen Drucker auswählen und bestätigen.
+## Quellen und Prüfstand
 
-Wenn das Passwort nach einer früheren HA-Einrichtung geändert wurde, kann eine
-erneute Anmeldung nötig sein. Die Integration aktualisiert ausgewählte Drucker
-in bestehenden Einträgen; du musst sie nicht löschen oder neu binden.
+- [ha-bambulab: Einrichtung über Bambu Cloud mit OAuth-Konto](https://docs.page/greghesp/ha-bambulab/setup#setup-using-bambu-cloud-w-oauth)
+- [Aktuelle Anmeldeimplementierung von Bambu Open Network](../custom_components/bambu_open_network/cloud.py)
 
-Wenn nach der Anmeldung keine Drucker auftauchen, vergleiche das verwendete
-Konto und die Region mit Bambu Handy.
+Dokumentation und Integrationscode geprüft am **26.10.2026**.
+Das Setzen des Passworts wurde hier nicht selbst an einem Google-verknüpften Konto getestet.
 
-## Quellen
-
-- [ha-bambulab: Einrichtung eines OAuth-Kontos](https://docs.page/greghesp/ha-bambulab/setup#setup-using-bambu-cloud-w-oauth)
-- [Bambu Handy Quick Start](https://wiki.bambulab.com/en/studio-handy/handy/bambu-handy-quick-start)
-- [Bambu: Passwort zurücksetzen](https://bambulab.com/en/account/forgot-password)
-
-Geprüft am 25.10.2026. [Zur Installationsanleitung](../PUBLISH_DE.md).
+[Zur Installationsanleitung](../PUBLISH_DE.md).
