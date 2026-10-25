@@ -2,15 +2,19 @@
 
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=odggg&repository=ha-openbamboo&category=integration)
 
-The HACS button requires a successful native release build. Enable prereleases in HACS while this integration is experimental.
+Enable prereleases/beta versions in HACS to install v0.2.0.
 
 Experimental HACS companion for [ha-bambulab](https://github.com/greghesp/ha-bambulab).
 Uses the real [Open Bamboo Networking](https://github.com/ClusterM/open-bamboo-networking)
 library as its MQTT backend.
 
-**This download is a source preview, not an installable HACS release.**
-48 offline Python tests pass. The Linux worker still needs to be compiled, and
-the integration needs a real Home Assistant/account/printer test.
+**[v0.2.0 is available as an experimental HACS prerelease](https://github.com/odggg/ha-openbamboo/releases/tag/v0.2.0).**
+48 offline Python tests and the native amd64/aarch64 build and protocol smoke
+tests pass. Live Home Assistant, cloud account and printer validation remains
+pending.
+
+Use the release asset `bambu_open_network.zip` or HACS. GitHub's automatic
+source-code download does not contain the built runtimes.
 
 ## Cloud login without entering an access code
 
@@ -66,7 +70,7 @@ bambu_open_network/credentials/slicer_crl.pem
 The folder can be changed in setup. Reload the integration after changing
 these files. Keys stay outside the repository and release archives.
 
-## HACS installation after a successful release build
+## Install via HACS
 
 1. Add the published new repository as an Integration in HACS custom repositories.
 2. Enable prereleases and download the experimental release.

@@ -1,6 +1,19 @@
 # Validation record: 2026-10-25, v0.2.0
 
-## Completed
+## Native release validation
+
+[Build run 40231586850](https://github.com/odggg/ha-openbamboo/actions/runs/40231586850)
+completed successfully for commit 559e82a1bfc6dbdcb0ce54cbab752211b0387cd1.
+
+- Real OBN and worker compiled under Alpine for amd64 and aarch64.
+- Each bundled worker passed its self-test inside the build container.
+- Each bundled musl runtime passed the native JSON protocol/create/destroy
+  smoke test on its Ubuntu host architecture.
+- The loader and 16 shared libraries per architecture were collected from ELF metadata.
+- Runtime checksums and corresponding-source packaging passed.
+- Experimental v0.2.0 release assets were published.
+
+## Completed offline checks
 
 - 48 offline Python tests pass under Python 3.12.
 - Syntax compilation passes for components, scripts and tests.
@@ -21,9 +34,6 @@ rollback, options login and credential-folder validation.
 
 ## Still required
 
-- Compile OBN and worker for Alpine amd64 and aarch64.
-- Run native self-tests and protocol smoke tests on each architecture.
-- Verify packaged ELF dependencies, licenses and corresponding source.
 - Test actual Home Assistant setup/startup/reload/options/disable/remove.
 - Test real account login, email verification/2FA and an expired token.
 - Verify existing config-entry/entity IDs remain unchanged in real HA.
@@ -34,4 +44,5 @@ rollback, options login and credential-folder validation.
 - Check existing local camera/FTP behavior after changing MQTT transport.
 - Validate HACS metadata after configuring the real GitHub repository.
 
-The delivered ZIP is a source preview, not a tested installable HACS release.
+The native release is built and smoke-tested. It is experimental: no real
+Home Assistant installation, cloud login or physical printer was tested.
