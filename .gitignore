@@ -6,3 +6,9 @@ custom_components/bambu_open_network/bin/
 .test-tmp/
 
 .test-deps/
+
+# Never publish provisioned/imported signing material.
+slicer_key.pem
+slicer_cert.pem
+slicer_crl.pem
+*.rollback

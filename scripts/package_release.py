@@ -25,6 +25,10 @@ if not (root / "vendor/open-bamboo-networking/CMakeLists.txt").is_file():
 shutil.copytree(root / "LICENSES", component / "licenses", dirs_exist_ok=True)
 shutil.copyfile(root / "LICENSE", component / "LICENSE")
 shutil.copyfile(root / "NOTICE.md", component / "NOTICE.md")
+for forbidden in ("slicer_key.pem", "slicer_cert.pem", "slicer_crl.pem"):
+    if any(component.rglob(forbidden)):
+        raise SystemExit("Provisioned credentials must not be packaged: " + forbidden)
+
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
 # HACS zip_release expects component contents at the ZIP root.

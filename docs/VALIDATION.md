@@ -1,3 +1,18 @@
+# Validation: v0.4.0 automatic credentials
+
+71 offline tests pass locally, including generated test-only RSA credentials,
+matching key/leaf, freshness, reuse without network, failure rollback,
+invalid response rejection and concurrent-request suppression.
+
+Native builds must run the fork's known-answer app-certificate cipher/RSA
+tests, protocol v3 and existing lifecycle smoke tests on both architectures.
+No real Bambu credentials are used by these offline tests.
+
+Still required: real Bambu certificate provisioning in HA, actual cloud
+camera and signed commands, startup/reload and renewal at a physical printer.
+
+## Previous releases
+
 # Validation record: v0.3.0 cloud camera
 
 ## Completed release checks
@@ -91,4 +106,3 @@ rollback, options login and credential-folder validation.
 
 The native release is built and smoke-tested. It is experimental: no real
 Home Assistant installation, cloud login or physical printer was tested.
-

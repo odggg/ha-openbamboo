@@ -91,3 +91,18 @@ TUTK is requested, not Agora. FTP/uploads are outside this media path.
 On signing readiness, the adapter requests an upstream entity refresh so
 controls omitted during authorization become available without deleting
 the printer. Publish remains guarded and is never retried on an unknown result.
+
+## Automatic app credentials (v0.4.0)
+
+Native source is now pinned to the persano fork/revision shipped by the
+user-selected Orca plugin. Its actual certificate-fetch/cipher implementation
+runs via --provision-credentials with the target directory sent on stdin.
+A separate process owns bootstrap; stdout exposes only success. It uses
+the bundled CA set and restrictive umask, not account tokens.
+
+HA checks key/leaf match, certificate validity and CRL freshness before reuse
+or renewal. It restores previous files on failure and reloads printer workers
+after success, resetting native signing caches. The fork's detached agent
+auto-fetch is disabled by a reproducible source patch, avoiding ephemeral
+copies and cloud traffic from LAN-only sessions. Actual provisioned PEMs
+are excluded from packaging.

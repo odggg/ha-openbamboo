@@ -28,7 +28,7 @@
       },
       "printers": {
         "title": "Printers",
-        "description": "Select printers from this account. Existing ha-bambulab entries are updated in place. Signing credentials are optional here; firmware that requires signed commands still needs them.",
+        "description": "In cloud mode, slicer certificates are provisioned automatically into the folder below. Existing valid files are reused. Select your printers; existing Bambu Lab entries are updated in place.",
         "data": {
           "printers": "Printers",
           "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
@@ -36,7 +36,7 @@
       },
       "existing": {
         "title": "Use existing printer connections",
-        "description": "Keep the current LAN/cloud settings of your ha-bambulab printers and activate only the Open Bamboo MQTT transport.",
+        "description": "Use existing LAN/cloud connections. Cloud connections provision slicer certificates automatically; LAN-only connections remain local.",
         "data": {
           "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
         }
@@ -88,7 +88,7 @@
       },
       "printers": {
         "title": "Printers",
-        "description": "Select printers from this account. Existing ha-bambulab entries are updated in place. Signing credentials are optional here; firmware that requires signed commands still needs them.",
+        "description": "In cloud mode, slicer certificates are provisioned automatically into the folder below. Existing valid files are reused. Select your printers; existing Bambu Lab entries are updated in place.",
         "data": {
           "printers": "Printers",
           "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
@@ -96,7 +96,7 @@
       },
       "existing": {
         "title": "Use existing printer connections",
-        "description": "Keep the current LAN/cloud settings of your ha-bambulab printers and activate only the Open Bamboo MQTT transport.",
+        "description": "Use existing LAN/cloud connections. Cloud connections provision slicer certificates automatically; LAN-only connections remain local.",
         "data": {
           "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
         }

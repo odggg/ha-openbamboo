@@ -14,7 +14,11 @@ for name in ("loader", "obn-ha-worker"):
 command = [str(runtime / "loader"), "--library-path", str(runtime / "lib"),
            str(runtime / "obn-ha-worker")]
 out = subprocess.run(command + ["--self-test"], capture_output=True, text=True, check=True, timeout=10)
-assert json.loads(out.stdout)["protocol"] == 2
+assert json.loads(out.stdout)["protocol"] == 3
+out = subprocess.run(command + ["--provision-credentials"],
+    input=json.dumps({"credentials_directory": "relative-target"}) + "\n",
+    capture_output=True, text=True, timeout=10)
+assert out.returncode == 1 and json.loads(out.stdout) == {"ok": False}
 # Invalid methods must return an error and must not silently accept a publish.
 out = subprocess.run(command, input=json.dumps({
     "id": 1, "method": "publish", "params": {"payload": "{}"}}) + "\n",

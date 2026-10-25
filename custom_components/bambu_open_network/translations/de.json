@@ -28,7 +28,7 @@
       },
       "printers": {
         "title": "Drucker",
-        "description": "Drucker aus diesem Konto auswählen. Vorhandene ha-bambulab-Einträge werden aktualisiert. Signatur-Zertifikate sind hier optional; Firmware mit Signaturpflicht benötigt sie weiterhin.",
+        "description": "Gültige Slicer-Zertifikate werden im Cloud-Modus automatisch beschafft und im angegebenen Ordner gespeichert. Vorhandene gültige Dateien bleiben erhalten. Drucker auswählen; vorhandene Bambu-Lab-Einträge werden aktualisiert.",
         "data": {
           "printers": "Drucker",
           "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
@@ -36,7 +36,7 @@
       },
       "existing": {
         "title": "Vorhandene Druckerverbindungen verwenden",
-        "description": "Die aktuellen LAN-/Cloud-Einstellungen deiner ha-bambulab-Drucker beibehalten und nur den Open-Bamboo-MQTT-Transport aktivieren.",
+        "description": "Bestehende LAN-/Cloud-Verbindungen weiterverwenden. Im Cloud-Modus werden Slicer-Zertifikate automatisch eingerichtet; reine LAN-Verbindungen bleiben lokal.",
         "data": {
           "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
         }
@@ -88,7 +88,7 @@
       },
       "printers": {
         "title": "Drucker",
-        "description": "Drucker aus diesem Konto auswählen. Vorhandene ha-bambulab-Einträge werden aktualisiert. Signatur-Zertifikate sind hier optional; Firmware mit Signaturpflicht benötigt sie weiterhin.",
+        "description": "Gültige Slicer-Zertifikate werden im Cloud-Modus automatisch beschafft und im angegebenen Ordner gespeichert. Vorhandene gültige Dateien bleiben erhalten. Drucker auswählen; vorhandene Bambu-Lab-Einträge werden aktualisiert.",
         "data": {
           "printers": "Drucker",
           "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
@@ -96,7 +96,7 @@
       },
       "existing": {
         "title": "Vorhandene Druckerverbindungen verwenden",
-        "description": "Die aktuellen LAN-/Cloud-Einstellungen deiner ha-bambulab-Drucker beibehalten und nur den Open-Bamboo-MQTT-Transport aktivieren.",
+        "description": "Bestehende LAN-/Cloud-Verbindungen weiterverwenden. Im Cloud-Modus werden Slicer-Zertifikate automatisch eingerichtet; reine LAN-Verbindungen bleiben lokal.",
         "data": {
           "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
         }

@@ -70,9 +70,9 @@ class OpenBambooCloudCamera(Camera):
             if image is None and client.camera.state in ERRORS:
                 errors = {
                     "missing_signing_credentials":
-                        "Cloud camera requires matching slicer_key.pem, slicer_cert.pem "
-                        "and slicer_crl.pem in the configured credentials folder. "
-                        "Reload Bambu Open Network after adding them.",
+                        "Cloud camera signing credentials are not ready. Automatic "
+                        "certificate provisioning may have failed. Check Bambu Open "
+                        "Network diagnostics and reload to retry.",
                     "cloud_camera_rejected":
                         "Bambu Cloud refused the TUTK camera session. Check the cloud "
                         "login, signing credentials and printer camera support.",

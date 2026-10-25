@@ -2,7 +2,16 @@
 
 - Open Bamboo Networking, ClusterM and contributors:
   https://github.com/ClusterM/open-bamboo-networking
-  pinned commit 7822614fc7d24b4e41b2f394ae067aa88ef4b05a.
+  using the persano fork https://github.com/persano/open-bamboo-networking
+  pinned commit 85c2b52445721bccc49534e82f52650037189d4f.
+  Fork changes copyright persano; AGPL-3.0-or-later.
+  This is the native source revision identified by Orca Plugin Hub's
+  Open Bambu Networking v0.2.41 (plugin 5d35283e-0378-474d-8d3a-6d8f718fddeb).
+  The library includes the fork's vendor app bootstrap value and certificate
+  fetch implementation. This is not a clean-room implementation.
+  Actual provisioned PEM signing files are created only at runtime.
+  scripts/patch_upstream.py disables detached fetch in printer workers;
+  HA manages persistent provisioning in a separate native process.
   Its AGPL-3.0-or-later license is preserved in LICENSES/open-bamboo-networking.txt.
   The build adds native/capabilities.cpp and native/cloud_camera.cpp to its DSO,
   along with OBN's TUTK receiver sources, without editing its

@@ -29,3 +29,11 @@ target_link_libraries(obn-ha-worker PRIVATE bambu_networking nlohmann_json::nloh
 set_target_properties(obn-ha-worker PROPERTIES BUILD_RPATH "$ORIGIN/lib"
   INSTALL_RPATH "$ORIGIN/lib")
 target_compile_options(obn-ha-worker PRIVATE -Wall -Wextra -Werror)
+
+# The exact fork's known-answer cipher/RSA tests, with no network or secrets
+# printed. Build only this target, keeping unrelated upstream tests disabled.
+add_executable(obn-appcert-selftest
+  "${OBN_SOURCE_DIR}/tests/appcert_test.cpp"
+  "${OBN_SOURCE_DIR}/src/appcert_cipher.cpp")
+target_include_directories(obn-appcert-selftest PRIVATE "${OBN_SOURCE_DIR}/include")
+target_link_libraries(obn-appcert-selftest PRIVATE OpenSSL::SSL OpenSSL::Crypto)

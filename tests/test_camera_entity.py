@@ -73,7 +73,7 @@ class CameraEntityTests(unittest.TestCase):
         async def executor(fn, *args):
             return fn(*args)
         self.hass.async_add_executor_job = executor
-        with self.assertRaisesRegex(Exception, "slicer_key.pem"):
+        with self.assertRaisesRegex(Exception, "Automatic"):
             run_immediate(self.entity.async_camera_image())
         self.assertEqual(self.entity.extra_state_attributes, {
             "transport": "cloud_tutk",

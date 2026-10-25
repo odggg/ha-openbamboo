@@ -1,10 +1,11 @@
 """Constants for the Open Bamboo transport extension."""
 DOMAIN = "bambu_open_network"
 NAME = "Bambu Open Network"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 UPSTREAM_DOMAIN = "bambu_lab"
-PROTOCOL_VERSION = 2
-OBN_COMMIT = "7822614fc7d24b4e41b2f394ae067aa88ef4b05a"
+PROTOCOL_VERSION = 3
+OBN_REPOSITORY = "persano/open-bamboo-networking"
+OBN_COMMIT = "85c2b52445721bccc49534e82f52650037189d4f"
 HA_BAMBULAB_COMMIT = "cd67ed90e08561175a831f35b45773fe427996d7"
 CONF_CREDENTIALS = "credentials_directory"
 DEFAULT_CREDENTIALS = "bambu_open_network/credentials"

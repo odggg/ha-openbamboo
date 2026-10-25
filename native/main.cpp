@@ -3,6 +3,8 @@
 #include "obn/bambu_networking.hpp"
 #include <nlohmann/json.hpp>
 #include <openssl/evp.h>
+#include <filesystem>
+#include <sys/stat.h>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -33,6 +35,7 @@ int bambu_network_send_message_to_printer(void*, std::string, std::string, int, 
 int bambu_network_send_message(void*, std::string, std::string, int, int);
 void bambu_network_install_device_cert(void*, std::string, bool);
 bool obn_ha_signing_material();
+bool obn_ha_fetch_credentials();
 bool obn_ha_camera_self_test();
 void obn_ha_camera_run(void*, const char*, void*, bool (*)(void*),
     void (*)(void*, const char*, const uint8_t*, size_t, int));
@@ -94,9 +97,33 @@ static bool read_line(std::string& line)
 
 int main(int argc, char** argv)
 {
+    ::umask(0077);
+    if (argc == 2 && std::string(argv[1]) == "--provision-credentials") {
+        bool ok = false;
+        void* provision_agent = nullptr;
+        try {
+            std::string line;
+            if (!read_line(line)) throw std::runtime_error("Missing target");
+            const auto value = json::parse(line);
+            const std::string target = value.at("credentials_directory");
+            if (!std::filesystem::path(target).is_absolute()
+                    || target.find_first_of("\r\n") != std::string::npos)
+                throw std::runtime_error("Invalid target");
+            provision_agent = bambu_network_create_agent(target);
+            if (provision_agent) {
+                check(bambu_network_set_config_dir(provision_agent, target));
+                ok = obn_ha_fetch_credentials();
+            }
+        } catch (...) {
+            ok = false;
+        }
+        if (provision_agent) bambu_network_destroy_agent(provision_agent);
+        emit({{"ok", ok}});
+        return ok ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--self-test") {
         if (!obn_ha_camera_self_test()) return 2;
-        emit({{"protocol", 2}, {"obn_commit", OBN_PINNED_COMMIT}});
+        emit({{"protocol", 3}, {"obn_commit", OBN_PINNED_COMMIT}});
         return 0;
     }
     void* agent = nullptr;

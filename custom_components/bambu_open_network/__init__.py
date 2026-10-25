@@ -1,6 +1,7 @@
 """Extend existing ha-bambulab entries with the Open Bamboo MQTT backend."""
 from __future__ import annotations
 
+from datetime import timedelta
 import importlib
 import logging
 from pathlib import Path
@@ -9,10 +10,12 @@ from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers.event import async_track_time_interval
 
 from .const import CONF_CREDENTIALS, DEFAULT_CREDENTIALS, DOMAIN, UPSTREAM_DOMAIN
 from .cloud_entries import CloudImportHook, entry_settings, sync_cloud_printers
 from .patch import IncompatibleUpstream, TransportPatch
+from .credentials import CredentialManager
 from .runtime import RuntimeUnavailable, validate_runtime
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,6 +50,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         import_hook = CloudImportHook(flow_module.BambuLabFlowHandler)
         import_hook.install()
         patch.cloud_import_hook = import_hook
+        patch.credentials_manager = CredentialManager(command, credentials, hass.config.config_dir)
         if settings.get("connection_mode") == "cloud":
             await sync_cloud_printers(hass, settings)
     except Exception as err:
@@ -70,10 +74,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryError("Unable to set up the Open Bamboo cloud camera") from None
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
+    def cloud_enabled():
+        return any(not entry_settings(upstream).get("local_mqtt", True)
+                   for upstream in hass.config_entries.async_entries(UPSTREAM_DOMAIN))
+
+    async def refresh_credentials(event=None):
+        if hass.data.get(DOMAIN) is not patch or not patch.active or not cloud_enabled():
+            return
+        changed = await hass.async_add_executor_job(patch.credentials_manager.ensure)
+        if changed and hass.data.get(DOMAIN) is patch and patch.active:
+            await _reload_upstream(hass)
+
+    entry.async_on_unload(async_track_time_interval(
+        hass, refresh_credentials, timedelta(minutes=15)))
+
     async def reload_printers(event=None):
         # This task may have been queued before the extension was unloaded.
         if hass.data.get(DOMAIN) is patch:
-            await _reload_upstream(hass)
+            if cloud_enabled():
+                await hass.async_add_executor_job(patch.credentials_manager.ensure)
+            if hass.data.get(DOMAIN) is patch and patch.active:
+                await _reload_upstream(hass)
 
     async def shutdown(event):
         patch.restore()

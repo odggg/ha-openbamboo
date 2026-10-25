@@ -2,6 +2,7 @@
 // Added to the pinned Open Bamboo DSO. No changes to upstream source files.
 #include "obn/abi_export.hpp"
 #include "obn/agent.hpp"
+#include "obn/appcert.hpp"
 #include "obn/config.hpp"
 #include "obn/signing.hpp"
 #include <openssl/pem.h>
@@ -31,7 +32,7 @@ static bool matching_key()
 
 OBN_ABI bool obn_ha_signing_material()
 {
-    static const bool ok = obn::signing::slicer_signing_key_present()
+    const bool ok = obn::signing::slicer_signing_key_present()
         && obn::signing::slicer_app_cert_usable() && matching_key();
     return ok;
 }
@@ -41,4 +42,12 @@ OBN_ABI bool obn_ha_signed_ready(void* handle, const char* serial)
     auto* agent = obn::as_agent(handle);
     return agent && serial && obn_ha_signing_material()
         && agent->wait_for_app_cert(serial, std::chrono::milliseconds(0));
+}
+
+// Only called in the isolated --provision-credentials process. Running
+// printer workers are restarted after a refresh, preserving signer isolation.
+OBN_ABI bool obn_ha_fetch_credentials()
+{
+    std::string error;
+    return obn::appcert::fetch_and_store(&error);
 }
