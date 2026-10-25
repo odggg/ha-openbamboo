@@ -1,5 +1,11 @@
 # Regular release: v0.4.1
 
+[Build 40239397623](https://github.com/odggg/ha-openbamboo/actions/runs/40239397623)
+passed for commit e72436903a2f5bf938c7e6568396259d4099ea2d:
+80 offline tests, both native architecture builds/cipher tests, source packaging
+and the real HACS ZIP / regular GitHub Latest checks all passed.
+GitHub /releases/latest returns v0.4.1 with draft=false and prerelease=false.
+
 Changes: default regular HACS publishing, imported Bambu printer entry/device
 names, preserved custom HA names and Google/OAuth login documentation.
 The real release ZIP and GitHub Latest endpoint are checked by the publishing
