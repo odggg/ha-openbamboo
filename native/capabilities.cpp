@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // Added to the pinned Open Bamboo DSO. No changes to upstream source files.
 #include "obn/abi_export.hpp"
 #include "obn/agent.hpp"

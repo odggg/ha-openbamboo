@@ -24,6 +24,23 @@ for line in sys.stdin:
         emit({"event": "capabilities", "signed_ready": mode == "signed"})
         if mode == "eof":
             sys.exit(0)
+    elif method == "camera_start":
+        emit({"id": request["id"], "rc": 0})
+        if mode == "camera":
+            from io import BytesIO
+            import base64
+            from PIL import Image
+            image = BytesIO()
+            Image.new("RGB", (64, 48), "blue").save(image, "JPEG")
+            emit({"event": "camera_state", "serial": serial, "state": "connecting"})
+            # A foreign printer frame must never be shown.
+            emit({"event": "camera_frame", "serial": "OTHER", "codec": "mjpeg",
+                  "data": base64.b64encode(image.getvalue()).decode()})
+            emit({"event": "camera_frame", "serial": serial, "codec": "mjpeg",
+                  "data": base64.b64encode(image.getvalue()).decode()})
+        else:
+            emit({"event": "camera_state", "serial": serial,
+                  "state": "missing_signing_credentials"})
     elif method == "publish":
         if mode == "hang":
             time.sleep(2)

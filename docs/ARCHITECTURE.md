@@ -19,8 +19,8 @@ the OBN DSO reports signing readiness after key/certificate parsing, matching
 and printer app-certificate acknowledgement. Python never passes C++ std::string
 or std::function objects through ctypes.
 
-Incoming data is handed to existing ha-bambulab models. Cameras and file
-transfer remain upstream. Raw firmware authorization flags are preserved;
+Incoming data is handed to existing ha-bambulab models. Local cameras and file
+transfer remain upstream; the companion adds its own cloud camera platform. Raw firmware authorization flags are preserved;
 the control guard is relaxed only for our live acknowledged native client.
 
 ## Cloud login and entry synchronization
@@ -57,3 +57,37 @@ Native TLS is implemented by OBN: the upstream Python SSLContext's TLS-version
 cap is not passed through with the extracted CA bundle. P2S firmware
 compatibility must be checked physically. An upstream encryption repair
 notification can remain visible after signing becomes ready.
+
+## Cloud TUTK camera
+
+The same per-printer OBN agent mints the remote camera URL through
+POST /user/ttcode with certificate proof of possession, and sends the signed
+liveview.prepare request. The new DSO bridge links OBN's actual TutkSession,
+IotcClient and FEC receiver sources. It passes decoded URL credentials only
+inside the native process; no URL/password is returned to Python or HA.
+
+A camera thread receives Annex-B H.264 or JPEG access units independently of
+the stdin command loop. Camera start/renew RPCs acknowledge immediately,
+so a failed media connection cannot hold up printer commands. Activity leases
+expire after 60 seconds without a camera request. Shutdown stops media before
+destroying the OBN agent; stuck native teardown is still subject to the
+existing process termination timeout.
+
+Frames use bounded JSON/base64 messages, are routed by printer serial and
+bypass the telemetry callback queue. Each Python decoder has an 8 MiB/60-frame
+queue and generation barriers. Disconnects, reconnects and failures invalidate
+old images; output images expire after 15 seconds. H.264 uses HA's PyAV
+dependency on a dedicated thread, with JPEG output capped at four frames/s.
+MJPEG frames are validated off the RPC reader thread.
+
+The normal HA camera proxy exposes snapshots and MJPEG with its existing
+authentication. No unauthenticated proxy/listener or session URL is created.
+The separate Cloud camera entity is linked by upstream config entry and
+device identity, retaining the original local camera entity/IDs.
+
+Cloud camera certificate proof is required even in Developer Mode. Only
+TUTK is requested, not Agora. FTP/uploads are outside this media path.
+
+On signing readiness, the adapter requests an upstream entity refresh so
+controls omitted during authorization become available without deleting
+the printer. Publish remains guarded and is never retried on an unknown result.

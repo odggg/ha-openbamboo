@@ -7,6 +7,7 @@ import inspect
 import json
 from pathlib import Path
 import textwrap
+import threading
 import weakref
 
 from .transport import OpenBambooClient
@@ -46,7 +47,8 @@ class ScopedMqtt:
             return self._original.Client(*args, **kwargs)
         client = OpenBambooClient(owner, self._patch.command, self._patch.state_root,
                                  self._patch.credentials)
-        self._patch.clients.add(client)
+        with self._patch.clients_lock:
+            self._patch.clients.add(client)
         return client
 
 class TransportPatch:
@@ -54,8 +56,13 @@ class TransportPatch:
         self.client_module, self.model_module = client_module, model_module
         self.command, self.state_root, self.credentials = command, state_root, credentials
         self.clients = weakref.WeakSet()
+        self.clients_lock = threading.Lock()
         self.active = False
         self._originals = None
+
+    def snapshot_clients(self):
+        with self.clients_lock:
+            return list(self.clients)
 
     def install(self):
         if self.active:
@@ -105,7 +112,7 @@ class TransportPatch:
         self.model_module.PrintFun.mqtt_signature_required = required
 
     def stop(self):
-        for client in list(self.clients):
+        for client in self.snapshot_clients():
             client.disconnect()
-        for client in list(self.clients):
+        for client in self.snapshot_clients():
             client.loop_stop()

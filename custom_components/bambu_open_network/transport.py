@@ -17,6 +17,8 @@ import threading
 from types import SimpleNamespace
 from typing import Any, Callable
 
+from .cloud_camera import CloudFrames, ERRORS
+
 _LOGGER = logging.getLogger(__name__)
 MAX_LINE = 4 * 1024 * 1024
 
@@ -61,6 +63,9 @@ class OpenBambooClient:
         self._username = ""
         self._password = ""
         self._disconnect_sent = False
+        self.camera = CloudFrames()
+        self._camera_request_lock = threading.Lock()
+        self._camera_requested_at = 0.0
 
     def enable_logger(self, *args, **kwargs):
         pass
@@ -102,6 +107,8 @@ class OpenBambooClient:
             self.disconnect()
             self.loop_stop()
         self._stop.clear()
+        self.camera = CloudFrames()
+        self._camera_requested_at = 0.0
         self._disconnect_sent = False
         self._events = queue.Queue(maxsize=1024)
         self._outgoing = queue.Queue(maxsize=64)
@@ -115,6 +122,7 @@ class OpenBambooClient:
         # Restrict credentials to explicit signing files; no arbitrary config injection.
         lines = ["log_level = error", "log_stderr = 0", "log_to_file = 0",
                  "patch_mqtt_home_flag = 0", "mqtt_keep_connection = 0",
+                 "client_name = BambuStudio", "prefer_lan_over_tutk = 0",
                  f"block_cloud = {int(self.owner._local_mqtt)}",
                  f"lan_tls_skip_verify = {int(self.owner._disable_ssl_verify and self.owner._local_mqtt)}"]
         for name in ("slicer_key.pem", "slicer_cert.pem", "slicer_crl.pem"):
@@ -160,7 +168,7 @@ class OpenBambooClient:
         self._sender.start()
         return 0
 
-    def _request(self, method: str, params=None, *, timeout=None):
+    def _request(self, method: str, params=None, *, timeout=None, fatal_timeout=True):
         if self._stop.is_set() or self._process is None or self._process.poll() is not None:
             raise ConnectionError("Open Bamboo worker is disconnected")
         waiter: queue.Queue = queue.Queue(maxsize=1)
@@ -183,8 +191,9 @@ class OpenBambooClient:
         except queue.Empty as err:
             # A timed-out motion/print command has an unknown outcome. Kill the
             # session and never retry the command on another transport.
-            self.disconnect()
-            raise TimeoutError(f"Open Bamboo {method} timed out; delivery unknown") from err
+            if fatal_timeout:
+                self.disconnect()
+            raise TimeoutError(f"Open Bamboo {method} timed out") from err
         finally:
             with self._pending_lock:
                 self._pending.pop(mid, None)
@@ -204,7 +213,16 @@ class OpenBambooClient:
                     if waiter:
                         waiter.put_nowait(event)
                 else:
+                    kind = event.get("event")
+                    if kind in ("camera_frame", "camera_state"):
+                        if event.get("serial") == self.owner._serial:
+                            if kind == "camera_frame":
+                                self.camera.feed(event)
+                            else:
+                                self.camera.set_state(event.get("state"))
+                        continue
                     if event.get("event") == "disconnected":
+                        self.camera.set_state("disconnected")
                         self._connected = self.signed_ready = False
                         self._discard_queued()
                     self._put_event(event)
@@ -212,6 +230,7 @@ class OpenBambooClient:
             _LOGGER.error("Open Bamboo native protocol failed")
         finally:
             self._connected = self.signed_ready = False
+            self.camera.set_state("disconnected")
             self._put_event({"event": "disconnected", "rc": 7})
             with self._pending_lock:
                 for waiter in self._pending.values():
@@ -239,6 +258,10 @@ class OpenBambooClient:
             self.signed_ready = bool(event.get("signed_ready")) and self._connected
             if previous != self.signed_ready and self.owner._callback:
                 self.owner.callback("event_printer_data_update")
+                if self.signed_ready and getattr(self.owner._device, "has_full_printer_data", False):
+                    # ha-bambulab omits control entities while signing is
+                    # unavailable. Recreate them after the certificate ACK.
+                    self.owner.callback("event_printer_ready")
         elif kind == "message":
             if event.get("serial") != self.owner._serial:
                 return
@@ -296,6 +319,7 @@ class OpenBambooClient:
 
     def loop_stop(self):
         self.disconnect()
+        self.camera.close()
         if self._callbacks and self._callbacks is not threading.current_thread():
             self._callbacks.join(timeout=3)
         if self._reader and self._reader is not threading.current_thread():
@@ -319,6 +343,7 @@ class OpenBambooClient:
             self._session = None
 
     def disconnect(self):
+        self.camera.close(wait=False)
         self._stop.set()
         self._connected = self.signed_ready = False
         self._discard_queued()
@@ -331,6 +356,25 @@ class OpenBambooClient:
             except OSError:
                 pass
         return 0
+
+    def request_camera(self):
+        """Start/renew a cloud session on demand; camera failures don't stop MQTT."""
+        import time
+        if self.owner._local_mqtt or not self._connected or self._stop.is_set():
+            return
+        with self._camera_request_lock:
+            now = time.monotonic()
+            if now - self._camera_requested_at < 10:
+                return
+            self._camera_requested_at = now
+            if self.camera.state in ERRORS or self.camera.state in ("idle", "disconnected"):
+                self.camera.set_state("connecting")
+            try:
+                result = self._request("camera_start", timeout=5, fatal_timeout=False)
+                if result.get("rc") != 0:
+                    self.camera.set_state("camera_failed")
+            except (OSError, ValueError, TimeoutError):
+                self.camera.set_state("camera_failed")
 
     def is_connected(self):
         return self._connected

@@ -186,6 +186,43 @@ class TransportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             client.connect("192.0.2.1", 1883)
 
+    def test_cloud_camera_uses_existing_worker_without_lan_code(self):
+        client = self.make("camera")
+        client.owner._local_mqtt = False
+        self.start(client)
+        client.request_camera()
+        image = client.camera.image(3)
+        self.assertIsNotNone(image)
+        self.assertTrue(image.startswith(b"\xff\xd8"))
+        self.assertEqual(client.camera.state, "streaming")
+        self.assertTrue(client.is_connected())
+        client.disconnect()
+        self.assertIsNone(client.camera.image())
+
+    def test_camera_missing_credentials_does_not_disable_control_transport(self):
+        client = self.make()
+        client.owner._local_mqtt = False
+        self.start(client)
+        client.request_camera()
+        self.wait_for(lambda: client.camera.state == "missing_signing_credentials")
+        result = client.publish("device/TEST123/request", '{"info":{}}')
+        result.wait_for_publish(3)
+        self.assertEqual(result.rc, 0)
+        self.assertTrue(client.is_connected())
+
+    def test_signed_readiness_recreates_previously_missing_controls(self):
+        client = self.make()
+        events = []
+        client.owner._callback = True
+        client.owner.callback = events.append
+        client.owner._device.has_full_printer_data = True
+        client._connected = True
+        client._dispatch({"event": "capabilities", "signed_ready": True})
+        self.assertIn("event_printer_ready", events)
+        events.clear()
+        client._dispatch({"event": "capabilities", "signed_ready": True})
+        self.assertEqual(events, [])
+
     def test_platform_selection(self):
         self.assertEqual(runtime.architecture("x86_64"), "amd64")
         self.assertEqual(runtime.architecture("arm64"), "aarch64")

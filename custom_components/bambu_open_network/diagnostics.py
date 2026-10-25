@@ -6,7 +6,7 @@ from .const import DOMAIN, HA_BAMBULAB_COMMIT, OBN_COMMIT, VERSION
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigEntry):
     patch = hass.data.get(DOMAIN)
-    clients = list(patch.clients) if patch else []
+    clients = patch.snapshot_clients() if patch else []
     return {
         "version": VERSION,
         "obn_commit": OBN_COMMIT,
@@ -14,8 +14,9 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigE
         "active": bool(patch and patch.active),
         "mqtt_clients": [
             {"connected": client.is_connected(), "signed_commands_ready": client.signed_ready,
-             "transport": "lan" if client.owner._local_mqtt else "cloud"}
+             "transport": "lan" if client.owner._local_mqtt else "cloud",
+             "camera_status": client.camera.state}
             for client in clients
         ],
-        "scope": "mqtt_only",
+        "scope": "mqtt_and_cloud_camera",
     }

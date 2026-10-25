@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - run: python -m pip install av==19.0.0 Pillow
       - run: python -m unittest discover -s tests -v
   native:
     needs: python
@@ -71,4 +72,4 @@ jobs:
           fi
           gh release create "$version" dist/*.zip --target "$GITHUB_SHA" \
             --prerelease --title "Bambu Open Network $version" \
-            --notes "Experimental MQTT transport adapter with Bambu Cloud login. Native amd64/aarch64 builds and offline tests passed. Live Home Assistant/printer validation is still pending."
+            --notes "Experimental cloud MQTT control and TUTK camera liveview. Cloud camera requires your own matching slicer signing credentials. Native amd64/aarch64 builds and offline tests passed; physical Home Assistant/printer validation is still pending."

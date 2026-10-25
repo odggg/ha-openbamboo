@@ -1,4 +1,37 @@
-# Validation record: 2026-10-25, v0.2.0
+# Validation record: v0.3.0 cloud camera
+
+## Scope of verification
+
+- Offline regression tests include actual PyAV H.264 encode/decode to JPEG,
+  valid MJPEG images, malformed/oversized video, bounded buffering, stale
+  image invalidation, missing signing credentials and cloud worker IPC.
+- Camera entity tests exercise actual platform methods with small HA
+  registry/executor stubs, printer identity isolation and actionable errors.
+- Signing readiness tests verify that missing controls are recreated once.
+- Native builds must compile the real OBN TUTK receiver and camera bridge
+  on amd64/aarch64 and pass protocol v2 and camera URL parsing self-tests.
+- Source/package checks preserve exact OBN provenance and runtime hashes.
+
+There is no physical HA/printer or actual Bambu account/camera validation.
+Offline frame decoding proves codec and pipe behavior, not end-to-end cloud
+camera reachability or printer firmware authorization.
+
+## Required live checks
+
+- HACS install/update, restart, setup, reload and remove in actual HA.
+- Account login with direct login and code/2FA.
+- Cloud camera without local IP or LAN access code, using valid own slicer
+  key/cert/CRL; both direct P2P and relayed TUTK network paths.
+- Confirm same HA printer device linkage, stream rendering and reconnect.
+- Missing/invalid signing files and rejected/expired cloud camera sessions.
+- View multiple printers/viewers; close views and verify media session expiry.
+- Pause/resume/light with firmware authorization accepted and rejected.
+- Camera failure must not interrupt status or queued printer commands.
+- H.264/MJPEG model coverage and explicit unsupported Agora behavior.
+
+## Previous MQTT-only release validation
+
+### v0.2.0 (2026-10-25)
 
 ## Native release validation
 

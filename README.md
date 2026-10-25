@@ -1,123 +1,96 @@
-# Bambu Open Network v0.2.0
+# Bambu Open Network v0.3.0
 
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=odggg&repository=ha-openbamboo&category=integration)
 
-Enable prereleases/beta versions in HACS to install v0.2.0.
-
 Experimental HACS companion for [ha-bambulab](https://github.com/greghesp/ha-bambulab).
 Uses the real [Open Bamboo Networking](https://github.com/ClusterM/open-bamboo-networking)
-library as its MQTT backend.
+library for MQTT control and **cloud TUTK camera liveview**.
 
-**[v0.2.0 is available as an experimental HACS prerelease](https://github.com/odggg/ha-openbamboo/releases/tag/v0.2.0).**
-48 offline Python tests and the native amd64/aarch64 build and protocol smoke
-tests pass. Live Home Assistant, cloud account and printer validation remains
-pending.
+## Install and connect
 
-Use the release asset `bambu_open_network.zip` or HACS. GitHub's automatic
-source-code download does not contain the built runtimes.
+1. Keep **ha-bambulab v2.2.26** installed. Linux amd64/aarch64 are supported.
+2. Open this repository in HACS and choose **Download / Redownload > Need a different version? > Release > v0.3.0**. It is an experimental prerelease. Older HACS versions may require enabling beta versions.
+3. Restart Home Assistant.
+4. Add **Bambu Open Network** under Settings > Devices & services.
+5. Choose **Bambu Cloud login**, enter region/email/password, complete verification and select your printers.
 
-## Cloud login without entering an access code
+Existing selected printers are updated in place. New printers become normal Bambu Lab entries.
+No manual printer IP or LAN access code is required for cloud MQTT or the new cloud camera.
 
-1. After installing a built release, add **Bambu Open Network** in HA.
-2. Choose **Bambu Cloud login**.
-3. Enter account region, email and password.
-4. Complete email/SMS verification or 2FA if requested.
-5. Select one or more printers from the account and confirm.
+Use the release asset `bambu_open_network.zip`. GitHub's automatic source archives lack the built native runtimes.
 
-No manual LAN access code or printer IP is needed. Account login and HTTP use
-ha-bambulab's existing authentication implementation. Cloud MQTT uses Open
-Bamboo with the account username and session token.
+## Cloud camera
 
-Existing selected ha-bambulab entries are updated in place: config-entry and
-entity IDs remain unchanged. New selected printers are created as standard
-ha-bambulab entries. An account-provided device code can be obtained
-automatically for existing local features; cloud MQTT never authenticates
-with that code.
+v0.3.0 adds a separate entity named **Cloud camera**, linked to the existing Bambu Lab printer device.
+Select that entity for a dashboard camera card. The older **Camera** entity belongs to ha-bambulab's local-camera path and may remain unavailable without a LAN configuration.
 
-Passwords and verification codes are not saved to configuration entries.
-The transient upstream password is cleared after each login attempt.
-Account tokens are stored in HA's normal configuration storage for reconnects.
-Sign in again under **Configure > Bambu Cloud login** if the token expires or
-you change accounts. Automatic token renewal is not implemented.
+Opening **Cloud camera** uses OBN to request a cloud camera session, send the liveview prepare command and receive video through its open TUTK implementation. It does not need a printer LAN IP or LAN access code. TUTK chooses a direct peer route or its relay where available.
 
-If website 2FA fails because of a CSRF requirement, the flow requests an
-email/SMS code, following the upstream implementation.
+**Cloud camera authentication requires your own matching slicer signing credentials**, even when telemetry works with only the account login. OBN's cloud camera endpoint uses certificate proof of possession. Developer Mode does not remove that cloud endpoint requirement.
 
-## Scope and prerequisites
-
-- Keep ha-bambulab installed. Reviewed version: **v2.2.26**.
-- Native Linux targets: **amd64 and aarch64** (HA OS/Container).
-- Install a **built release**, containing the native runtimes.
-- Cameras, RTSP/TCP6000, FTP, uploads and cloud REST stay with ha-bambulab.
-- New cloud-only entries have no local IP, so local cameras/FTP are initially
-  unavailable. Existing local IP and camera settings are preserved.
-- Switching account transport to cloud intentionally uses Bambu Cloud.
-  An open-source client does not make the cloud service open-source.
-
-Firmware authorization is separate from account login. Firmware that requires
-signed commands still needs your own matching slicer key, certificate chain
-and CRL, or a supported Developer Mode. Account login alone does not remove
-the printer's command verification. Signing material is not included.
-
-Optional signing files, relative to the HA configuration directory:
+Place these files in the HA configuration directory:
 
 ```text
-bambu_open_network/credentials/slicer_key.pem
-bambu_open_network/credentials/slicer_cert.pem
-bambu_open_network/credentials/slicer_crl.pem
+/config/bambu_open_network/credentials/slicer_key.pem
+/config/bambu_open_network/credentials/slicer_cert.pem
+/config/bambu_open_network/credentials/slicer_crl.pem
 ```
 
-The folder can be changed in setup. Reload the integration after changing
-these files. Keys stay outside the repository and release archives.
+Use the configured credentials folder if you changed it during setup, then reload **Bambu Open Network**.
+Credentials are never included in repository/release files.
+If you already configured Open Bamboo in a slicer, use your own corresponding credential files.
 
-## Install via HACS
+The camera's `camera_status` and `last_error` attributes distinguish missing signing material, a rejected cloud session, decoder absence and video timeouts. Session URLs, TUTK passwords and frame contents are not diagnostic attributes.
 
-1. Add the published new repository as an Integration in HACS custom repositories.
-2. Enable prereleases and download the experimental release.
-3. Restart HA and add **Bambu Open Network**.
-4. Choose Cloud login, or **Use existing printer connections** to keep the
-   original LAN/cloud settings.
+H.264 is decoded with HA's PyAV dependency; MJPEG is validated directly. The HA camera serves JPEG snapshots and MJPEG liveview, capped at four decoded images per second. This is a monitoring feed, not the full-frame-rate Slicer video player, and does not expose audio/HLS/RTSP recording.
+One cloud session per printer is shared by viewers and idles out after 60 seconds without image requests. A first connection can take several seconds; reopen/refresh if the first thumbnail times out.
 
-HACS installation alone does not activate an integration. A one-time UI setup
-is required; no YAML is needed. Source repository: https://github.com/odggg/ha-openbamboo.
-Native release availability is shown on its Releases page. See [PUBLISH_DE.md](PUBLISH_DE.md).
+Only OBN's **TUTK** camera path is supported. Printers/accounts requiring Agora are not supported by this implementation.
 
-## Transport and failure behavior
+## Printer controls
 
-The adapter makes reversible, scoped in-memory hooks; it does not modify
-ha-bambulab files. Each printer gets an isolated OBN process. Incoming MQTT
-still uses ha-bambulab's models and entities.
+Use the ordinary **Bambu Lab** printer device page for pause/resume/stop, chamber light and the other controls supported by ha-bambulab and your model.
+Commands pass through the real OBN MQTT send/signing implementation. This extension preserves ha-bambulab's existing entities, services and automation IDs.
 
-The existing control guard is relaxed only for a live native connection with
-parsed matching signing material and an acknowledged app certificate.
-Disconnects and signature errors revoke readiness; raw printer flags remain
-unchanged.
+Firmware requiring signed commands still needs valid matching signing material and a printer-acknowledged app certificate, or a supported Developer Mode for local commands.
+Cloud login does not bypass firmware verification.
+When signing becomes ready, the extension asks ha-bambulab to recreate controls that were previously omitted while locked.
 
-Commands are queued without blocking HA. A publish return code of zero means
-accepted for delivery, not printer execution confirmation. Native rejections
-are recorded/logged. Commands with unknown outcomes are not retried by this
-adapter, and buffered actions are discarded on disconnect.
+A queued command is not an execution acknowledgement. Firmware rejections are logged, readiness is revoked on signature errors/disconnect, and uncertain commands are never automatically replayed.
 
-An incompatible upstream interface or missing native runtime prevents setup.
-Failed multi-printer cloud configuration restores previous options and removes
-only entries created by that failed operation. Disabling the companion
-restores original transport methods and reloads ha-bambulab. Cloud account
-settings remain standard ha-bambulab settings after disabling the companion.
+## Account and local features
+
+Account HTTP/login uses ha-bambulab's maintained BambuCloud implementation in an executor.
+Passwords/verification codes are transient. Session tokens are stored in HA configuration storage.
+Sign in again via **Configure > Bambu Cloud login** when the session expires; automatic token renewal is not implemented.
+
+Local cameras, FTP and uploads remain with ha-bambulab and still require their local connection settings.
+Cloud camera is provided by the companion entity described above.
+Existing local IP/camera settings are preserved when cloud account settings are applied.
+
+## Validation and limits
+
+Offline tests include real H.264 encode/decode, MJPEG validation, bounded video buffering, stale-frame removal, cloud worker RPC, credential errors, signing readiness and existing login/transport regression tests.
+GitHub Actions builds real OBN and the native worker on amd64/aarch64 before publishing release assets.
+
+**No physical printer, actual cloud camera session or real Home Assistant lifecycle has been validated here.** This release is experimental.
+See [validation](docs/VALIDATION.md) and the [release build](https://github.com/odggg/ha-openbamboo/actions).
+
+The adapter uses reversible scoped in-memory hooks and does not edit ha-bambulab files.
+It refuses unknown reviewed upstream interfaces and incomplete runtimes.
+Disabling it restores the original transport; account settings remain normal upstream settings.
 
 ## Development
 
 ```sh
+python -m pip install av==19.0.0 Pillow
 python -m unittest discover -s tests -v
 python -m compileall -q custom_components scripts tests
 ```
 
-The GitHub workflow builds OBN and the worker under Alpine for amd64/aarch64,
-bundles musl and transitive libraries, and publishes the corresponding source.
-There are no compiler/package-manager requirements on the HA host.
+Open Bamboo is pinned to `7822614fc7d24b4e41b2f394ae067aa88ef4b05a`, ABI 02.08.04.
+Reviewed ha-bambulab: v2.2.26, commit `cd67ed90e08561175a831f35b45773fe427996d7`.
+Native protocol v2 prevents using a v0.2.0 MQTT-only runtime with this camera component.
 
-Open Bamboo is pinned to 7822614fc7d24b4e41b2f394ae067aa88ef4b05a, ABI 02.08.04.
-ha-bambulab v2.2.26 is cd67ed90e08561175a831f35b45773fe427996d7. Reviewed transport
-methods also match main commit 0e027ff135a6d9265cb756d3e246747954c76722.
-
-See [architecture](docs/ARCHITECTURE.md) and [validation](docs/VALIDATION.md).
-GPL-3.0-or-later; preserve [third-party notices](NOTICE.md).
+[Architecture](docs/ARCHITECTURE.md) · [German installation notes](PUBLISH_DE.md) · [Third-party notices](NOTICE.md).
+AGPL-3.0-or-later. Corresponding source accompanies binary releases.

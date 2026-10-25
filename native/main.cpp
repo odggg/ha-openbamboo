@@ -1,7 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // Line-delimited JSON adapter around the real Open Bamboo Networking ABI.
 #include "obn/bambu_networking.hpp"
 #include <nlohmann/json.hpp>
+#include <openssl/evp.h>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -32,6 +33,9 @@ int bambu_network_send_message_to_printer(void*, std::string, std::string, int, 
 int bambu_network_send_message(void*, std::string, std::string, int, int);
 void bambu_network_install_device_cert(void*, std::string, bool);
 bool obn_ha_signing_material();
+bool obn_ha_camera_self_test();
+void obn_ha_camera_run(void*, const char*, void*, bool (*)(void*),
+    void (*)(void*, const char*, const uint8_t*, size_t, int));
 bool obn_ha_signed_ready(void*, const char*);
 }
 
@@ -43,6 +47,33 @@ static void emit(const json& value)
 {
     std::lock_guard<std::mutex> lock(output_mutex);
     std::cout << value.dump(-1, ' ', false, json::error_handler_t::replace) << '\n' << std::flush;
+}
+static int64_t clock_ms()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+struct CameraContext {
+    std::atomic<bool> requested{false};
+    std::atomic<bool> working{false};
+    std::atomic<int64_t> last_request{0};
+    std::string serial;
+};
+static bool camera_running(void* value)
+{
+    auto* c = static_cast<CameraContext*>(value);
+    return !quitting && connected && c->requested && clock_ms() - c->last_request.load() < 60000;
+}
+static void camera_event(void* value, const char* status, const uint8_t* data, size_t size, int codec)
+{
+    auto* c = static_cast<CameraContext*>(value);
+    if (quitting) return;
+    if (data && size) {
+        std::string encoded(4 * ((size + 2) / 3), '\0');
+        EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encoded.data()), data, static_cast<int>(size));
+        emit({{"event", "camera_frame"}, {"serial", c->serial},
+              {"codec", codec == 1 ? "mjpeg" : "h264"}, {"data", encoded}});
+    } else emit({{"event", "camera_state"}, {"serial", c->serial}, {"state", status}});
 }
 static void check(int rc)
 {
@@ -64,17 +95,21 @@ static bool read_line(std::string& line)
 int main(int argc, char** argv)
 {
     if (argc == 2 && std::string(argv[1]) == "--self-test") {
-        emit({{"protocol", 1}, {"obn_commit", OBN_PINNED_COMMIT}});
+        if (!obn_ha_camera_self_test()) return 2;
+        emit({{"protocol", 2}, {"obn_commit", OBN_PINNED_COMMIT}});
         return 0;
     }
     void* agent = nullptr;
-    std::thread maintenance;
+    std::thread maintenance, camera;
+    CameraContext camera_context;
     std::string serial;
     bool local = true;
     std::atomic<bool> signed_ready{false};
     std::atomic<bool> signature_rejected{false};
     auto cleanup = [&] {
         quitting = true;
+        camera_context.requested = false;
+        if (camera.joinable()) camera.join();
         if (maintenance.joinable()) maintenance.join();
         if (agent) {
             bambu_network_destroy_agent(agent);
@@ -94,6 +129,7 @@ int main(int argc, char** argv)
                 if (serial.empty() || serial.find_first_not_of(
                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") != std::string::npos)
                     throw std::runtime_error("Invalid serial");
+                camera_context.serial = serial;
                 local = params.at("local").get<bool>();
                 const std::string state = params.at("state_directory");
                 agent = bambu_network_create_agent(state);
@@ -175,6 +211,25 @@ int main(int argc, char** argv)
                         }
                     });
                 }
+            } else if (method == "camera_start" && agent) {
+                if (local) rc = -19;
+                else if (!connected) rc = -4;
+                else {
+                    camera_context.last_request = clock_ms();
+                    camera_context.requested = true;
+                    if (!camera_context.working.exchange(true)) {
+                        if (camera.joinable()) camera.join();
+                        camera = std::thread([&] {
+                            obn_ha_camera_run(agent, serial.c_str(), &camera_context,
+                                              camera_running, camera_event);
+                            camera_context.working = false;
+                        });
+                    }
+                    rc = 0;
+                }
+            } else if (method == "camera_stop" && agent) {
+                camera_context.requested = false;
+                rc = 0;
             } else if (method == "publish" && agent) {
                 const std::string payload = params.at("payload");
                 const int qos = params.value("qos", 0);

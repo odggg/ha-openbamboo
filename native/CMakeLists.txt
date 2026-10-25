@@ -11,7 +11,13 @@ set(OBN_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory("${OBN_SOURCE_DIR}" upstream)
 # Compile our small status extension into the same DSO as OBN so its hidden
 # internal C++ symbols never have to cross a compiler/STL ABI boundary.
-target_sources(bambu_networking PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/capabilities.cpp")
+target_sources(bambu_networking PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/capabilities.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cloud_camera.cpp"
+  "${OBN_SOURCE_DIR}/src/camera/tutk/TutkSession.cpp"
+  "${OBN_SOURCE_DIR}/src/camera/tutk/IotcClient.cpp"
+  "${OBN_SOURCE_DIR}/src/camera/tutk/Fec.cpp")
+target_include_directories(bambu_networking PRIVATE "${OBN_SOURCE_DIR}/src")
 find_package(nlohmann_json REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
@@ -19,7 +25,7 @@ add_executable(obn-ha-worker main.cpp)
 target_include_directories(obn-ha-worker PRIVATE "${OBN_SOURCE_DIR}/include")
 target_compile_definitions(obn-ha-worker PRIVATE ABI_VERSION=0x020804
   OBN_PINNED_COMMIT="${OBN_COMMIT}" _GLIBCXX_USE_CXX11_ABI=1)
-target_link_libraries(obn-ha-worker PRIVATE bambu_networking nlohmann_json::nlohmann_json Threads::Threads)
+target_link_libraries(obn-ha-worker PRIVATE bambu_networking nlohmann_json::nlohmann_json Threads::Threads OpenSSL::Crypto)
 set_target_properties(obn-ha-worker PROPERTIES BUILD_RPATH "$ORIGIN/lib"
   INSTALL_RPATH "$ORIGIN/lib")
 target_compile_options(obn-ha-worker PRIVATE -Wall -Wextra -Werror)

@@ -5,6 +5,9 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+if (ROOT / ".test-deps").is_dir():
+    sys.path.insert(0, str(ROOT / ".test-deps"))
+
 TEST_TMP = ROOT / ".test-tmp"
 TEST_TMP.mkdir(exist_ok=True)
 tempfile.tempdir = str(TEST_TMP)

@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
 
@@ -60,6 +60,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Upstream network exceptions can contain account tokens. Do not echo.
         raise ConfigEntryError("Unable to activate the Open Bamboo cloud/transport configuration") from None
     hass.data[DOMAIN] = patch
+    try:
+        await hass.config_entries.async_forward_entry_setups(entry, [Platform.CAMERA])
+    except Exception:
+        hass.data.pop(DOMAIN, None)
+        patch.restore()
+        import_hook.restore()
+        await hass.async_add_executor_job(patch.stop)
+        raise ConfigEntryError("Unable to set up the Open Bamboo cloud camera") from None
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     async def reload_printers(event=None):
@@ -82,6 +90,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    if not await hass.config_entries.async_unload_platforms(entry, [Platform.CAMERA]):
+        return False
     patch = hass.data.pop(DOMAIN, None)
     if patch:
         patch.restore()

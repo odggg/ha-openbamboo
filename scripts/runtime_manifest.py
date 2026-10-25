@@ -8,7 +8,7 @@ root = Path(sys.argv[1])
 files = {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
          for p in sorted(root.rglob("*")) if p.is_file() and p.name != "runtime.json"}
 (root / "runtime.json").write_text(json.dumps({
-    "protocol": 1,
+    "protocol": 2,
     "obn_commit": "7822614fc7d24b4e41b2f394ae067aa88ef4b05a",
     "architecture": sys.argv[2],
     "sha256": files,

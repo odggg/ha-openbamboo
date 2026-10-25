@@ -1,78 +1,51 @@
-# Bambu Open Network v0.2.0 veröffentlichen
+# Bambu Open Network v0.3.0
 
-Dieses ZIP enthält Quellcode. Die nativen Linux-Binaries sind noch nicht
-gebaut. Es ist daher noch kein direkt installierbares HACS-Release.
+Repository: https://github.com/odggg/ha-openbamboo
 
-## Repository und Build
+## Installation über HACS
 
-1. Ein neues GitHub-Repository anlegen, z. B. ha-bambu-open-network.
-2. Alle Projektdateien einschließlich .github und .gitignore übernehmen.
-3. Im Projektordner die tatsächliche Repository-Adresse setzen:
+1. ha-bambulab v2.2.26 installiert lassen.
+2. Bambu Open Network in HACS öffnen.
+3. Download / Erneut herunterladen > „Need a different version?“ > Release > v0.3.0.
+4. Herunterladen und Home Assistant neu starten.
+5. Einstellungen > Geräte & Dienste > Integration hinzufügen > Bambu Open Network.
+6. Mit Bambu Cloud anmelden und Drucker auswählen.
 
-```powershell
-python scripts/configure_repository.py DEIN_GITHUB_NAME/ha-bambu-open-network
+Die Version ist ein experimentelles Prerelease. Bei älterem HACS ggf. Beta-Versionen anzeigen.
+Keine Drucker löschen oder neu anlegen: Vorhandene Bambu-Lab-Einträge werden aktualisiert.
+
+## Cloud-Kamera und Steuerung
+
+Am Bambu-Lab-Druckergerät erscheint eine eigene Entität **Cloud camera**.
+Diese für die Dashboard-Karte auswählen. Die bisherige Kamera-Entität bleibt eine lokale Kamera und kann ohne lokale Verbindung weiter „unavailable“ anzeigen.
+
+Die neue Kamera holt eine Cloud-Sitzung und empfängt das Bild über Open Bamboos TUTK-Empfänger. Eine lokale Drucker-IP oder ein LAN-Access-Code ist dafür nicht erforderlich.
+
+Bambu verlangt am Cloud-Kamera-Endpunkt zusätzlich Slicer-Zertifikate. Eigene zusammenpassende Dateien unter folgendem Pfad ablegen:
+
+```text
+/config/bambu_open_network/credentials/slicer_key.pem
+/config/bambu_open_network/credentials/slicer_cert.pem
+/config/bambu_open_network/credentials/slicer_crl.pem
 ```
 
-4. Dateien in das Repository pushen.
-5. Unter Actions > Build HACS release > Run workflow den Build starten.
+Danach Bambu Open Network neu laden. Bei geändertem Zertifikatsordner den dort konfigurierten Pfad verwenden.
+Ein Cloud-Login oder Developer Mode allein ersetzt diese Cloud-Anforderung nicht.
+Zertifikate/Schlüssel sind nicht im Release enthalten.
 
-Der Workflow baut die echte Open-Bamboo-Bibliothek und den Adapter für amd64
-und aarch64. Er muss vor einem Release vollständig durchlaufen. Linux-Build
-und Gerätetest konnten in der Entwicklungsumgebung noch nicht ausgeführt werden.
+Die Kamera liefert JPEG-Bilder/MJPEG mit bis zu vier decodierten Bildern pro Sekunde.
+TUTK wird unterstützt; Agora nicht. Die erste Verbindung kann mehrere Sekunden dauern.
 
-Das Actions-Artefakt hacs-release enthält nach einem erfolgreichen Build:
+Pause/Fortsetzen/Stopp, Licht und weitere unterstützte Funktionen befinden sich weiterhin auf der normalen Bambu-Lab-Geräteseite.
+Bei Firmware mit Signaturpflicht werden passende Slicer-Zugangsdaten und eine vom Drucker bestätigte App-Zertifizierung benötigt.
 
-- bambu_open_network.zip: Inhalt des HA-Integrationsordners.
-- bambu_open_network-source.zip: zugehörige Quellen und Buildskripte.
+## Status und Fehler
 
-Für einen manuellen Vorabtest das Integrations-ZIP nach
-/config/custom_components/bambu_open_network/ entpacken, HA neu starten
-und Bambu Open Network hinzufügen. Mit einem unbeschäftigten Drucker zuerst
-Sensoren und eine harmlose Funktion wie das Kammerlicht prüfen.
+Die Attribute der Cloud-Kamera zeigen `camera_status` und `last_error`.
+`missing_signing_credentials`: Zertifikate fehlen, passen nicht oder sind nicht nutzbar.
+`cloud_camera_rejected`: Cloud verweigert die TUTK-Sitzung.
+`camera_timeout`: Kein verwertbarer Stream angekommen.
+Die Diagnosedatei enthält weder Token noch Kamera-Sitzungsdaten oder Bilder.
 
-## Bambu-Cloud-Anmeldung
-
-Im Einrichtungsdialog „Mit Bambu Cloud anmelden“ auswählen:
-
-1. Kontoregion (z. B. Europe), Bambu-E-Mail und Passwort eingeben.
-2. Bei Bedarf E-Mail-/SMS-Code oder Authenticator-Code eingeben.
-3. Drucker aus dem Konto auswählen und bestätigen.
-
-Eine manuelle Eingabe des LAN-Access-Codes oder der Drucker-IP entfällt.
-Ein bereits vorhandener Drucker wird aktualisiert, ohne ihn zu löschen oder
-seine Entity-IDs zu ändern. Neue Drucker werden als ha-bambulab-Einträge angelegt.
-
-Passwort und Bestätigungscode werden nicht gespeichert. Der Kontotoken
-wird für Wiederverbindungen in HA gespeichert. Bei abgelaufener Sitzung unter
-„Konfigurieren > Mit Bambu Cloud anmelden“ erneut anmelden.
-Ein automatischer Token-Refresh wurde nicht ergänzt.
-
-Neue reine Cloud-Einträge haben zunächst keine lokale Kamera-/FTP-Verbindung,
-weil keine lokale IP eingetragen wird. Vorhandene lokale Einstellungen
-bleiben beim Wechsel auf Cloud-MQTT erhalten.
-
-Firmware mit Signaturpflicht benötigt weiterhin eigene slicer_key.pem,
-slicer_cert.pem und slicer_crl.pem oder einen unterstützten Developer Mode.
-Der Cloud-Login ersetzt diese Firmware-Anforderung nicht.
-
-## HACS-Release veröffentlichen
-
-Nach erfolgreichem Build und Gerätetest:
-
-```powershell
-git tag v0.2.0
-git push origin v0.2.0
-```
-
-Der Workflow veröffentlicht ein experimentelles Prerelease mit beiden
-ZIP-Dateien. Das Repository in HACS als benutzerdefinierte Integration
-hinzufügen und Prereleases aktivieren. HACS nutzt bambu_open_network.zip.
-
-Nach dem Download HA neu starten und die Integration einmal aktivieren.
-Kein YAML erforderlich. Alternativ kann der Adapter die bestehenden
-Druckerverbindungen unverändert als LAN-/Cloud-Konfiguration weiterverwenden.
-
-Zum Rückbau die zusätzliche Integration zuerst deaktivieren/entfernen,
-danach das HACS-Paket entfernen und HA neu starten. Die ursprünglichen
-Transportmethoden werden wiederhergestellt. Bereits gespeicherte
-Cloud-Kontoeinstellungen bleiben reguläre ha-bambulab-Einstellungen.
+Native amd64-/aarch64-Builds und Offline-Tests laufen vor Veröffentlichung.
+Ein echter Home-Assistant-/Drucker-/Cloud-Kameratest ist noch erforderlich.
