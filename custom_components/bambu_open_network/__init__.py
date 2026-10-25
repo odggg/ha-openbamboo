@@ -17,6 +17,7 @@ from .cloud_entries import CloudImportHook, entry_settings, sync_cloud_printers
 from .patch import IncompatibleUpstream, TransportPatch
 from .credentials import CredentialManager
 from .names import PrinterNamePatch
+from .panel import async_setup_panel, async_unload_panel
 from .runtime import RuntimeUnavailable, validate_runtime
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,14 +75,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryError("Unable to activate the Open Bamboo cloud/transport configuration") from None
     hass.data[DOMAIN] = patch
     try:
+        await async_setup_panel(hass, patch)
         await hass.config_entries.async_forward_entry_setups(entry, [Platform.CAMERA])
     except Exception:
+        async_unload_panel(hass)
         hass.data.pop(DOMAIN, None)
         patch.restore()
         import_hook.restore()
         name_patch.restore()
         await hass.async_add_executor_job(patch.stop)
-        raise ConfigEntryError("Unable to set up the Open Bamboo cloud camera") from None
+        raise ConfigEntryError("Unable to set up the Open Bamboo camera/control panel") from None
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     def cloud_enabled():
@@ -124,6 +127,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not await hass.config_entries.async_unload_platforms(entry, [Platform.CAMERA]):
         return False
+    async_unload_panel(hass)
     patch = hass.data.pop(DOMAIN, None)
     if patch:
         patch.restore()

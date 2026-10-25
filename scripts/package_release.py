@@ -37,7 +37,7 @@ with zipfile.ZipFile(dist / "bambu_open_network.zip", "w", zipfile.ZIP_DEFLATED)
         if path.is_file() and "__pycache__" not in path.parts:
             archive.write(path, path.relative_to(component))
 with zipfile.ZipFile(dist / "bambu_open_network-source.zip", "w", zipfile.ZIP_DEFLATED) as archive:
-    for parent in ("native", "scripts", "vendor", "LICENSES", "tests"):
+    for parent in ("native", "scripts", "vendor", "LICENSES", "tests", "docs"):
         for path in sorted((root / parent).rglob("*")):
             if path.is_file() and "__pycache__" not in path.parts:
                 archive.write(path, path.relative_to(root))

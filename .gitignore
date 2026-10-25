@@ -12,3 +12,5 @@ slicer_key.pem
 slicer_cert.pem
 slicer_crl.pem
 *.rollback
+
+.test-deps-js/

@@ -1,0 +1,27 @@
+send_gcode:
+  name: Send G-code
+  description: >-
+    Send one or more G-code lines over the printer's Open Bamboo connection.
+    Admin only. Successful return means native acceptance, not firmware execution.
+    Commands are never automatically retried.
+  fields:
+    device_id:
+      name: Printer
+      required: true
+      selector:
+        device:
+          integration: bambu_lab
+    gcode:
+      name: G-code
+      description: One command per line. A final newline is added automatically. Maximum 16 KiB.
+      required: true
+      example: "M104 S200"
+      selector:
+        text:
+          multiline: true
+    allow_during_print:
+      name: Allow during a print
+      description: Explicitly allow custom commands while the printer is not idle.
+      default: false
+      selector:
+        boolean:

@@ -73,3 +73,9 @@ Die Kameraattribute **camera_status** und **last_error** zeigen den Zustand:
 
 Der Betreiber hat den Betrieb von v0.4.0 am 25.10.2026 als funktionierend
 bestätigt. Die Abdeckung weiterer Modelle und Firmware-Versionen ist begrenzt.
+
+## Maschinensteuerung ab v0.5.0
+
+Nach dem HACS-Update und HA-Neustart erscheint **Bambu Control** in der Seitenleiste für Administratoren. Achsen, Homing, Temperaturen, Bauteillüfter, Extruder und G-Code-Konsole sind dort erreichbar.
+
+[Anleitung mit G-Code-Aktion für Automationen](docs/MACHINE_CONTROL_DE.md).

@@ -1,4 +1,4 @@
-# Bambu Open Network v0.4.1
+# Bambu Open Network v0.5.0
 
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=odggg&repository=ha-openbamboo&category=integration)
 
@@ -18,6 +18,23 @@ Use the built release asset bambu_open_network.zip; automatic GitHub source arch
 
 **Using Google sign-in?** [Set up Bambu email/password login](docs/GOOGLE_LOGIN.md)
 ([Deutsch](docs/GOOGLE_LOGIN_DE.md)).
+
+## Machine control and G-code
+
+After updating and restarting HA, administrators can open **Bambu Control** in the
+sidebar. Select a printer by its existing name: jog X/Y/Z, home, set nozzle/bed
+temperatures and part cooling fan, extrude/retract through the hot active nozzle,
+or pause/resume/cancel a print. A shortcut opens its Cloud camera.
+
+The multiline G-code console and the **bambu_open_network.send_gcode** automation
+action use the existing signed Open Bamboo connection. Motion buttons require an
+idle printer; raw G-code during a print requires an explicit override.
+Commands require fresh status, expire before transmission if queued too long,
+and are never automatically retried.
+
+Native acceptance does **not** confirm firmware execution. This is a direct
+command console, without Pronterface's serial ok/response protocol or streamed
+G-code-file printing. See the [German guide and automation example](docs/MACHINE_CONTROL_DE.md).
 
 ## Imported printer names
 

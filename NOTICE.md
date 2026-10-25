@@ -34,3 +34,7 @@ networking plugin binaries are part of this project.
 
 - PyAV and Pillow are provided by Home Assistant's stream/upstream camera
   dependencies; they are not bundled into this integration's native runtime.
+
+## Home Assistant test fixtures
+
+The websocket decorator excerpts in tests/fixtures/ha_websocket_decorators.py.txt are from Home Assistant Core 2025.1.0, homeassistant/components/websocket_api/decorators.py, under Apache-2.0. They exercise actual authorization decorators against registry/executor fixtures. See LICENSES/Apache-2.0-Home-Assistant.txt and the source URL in the fixture.

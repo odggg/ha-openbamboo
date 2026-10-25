@@ -135,3 +135,20 @@ rollback, options login and credential-folder validation.
 
 The native release is built and smoke-tested. It is experimental: no real
 Home Assistant installation, cloud login or physical printer was tested.
+
+## v0.5.0 machine-control validation
+
+- 101 Python tests pass locally: command validation, idle/paused locks, hot-nozzle
+  extrusion, multiline/newline handling, size bounds, per-printer routing,
+  native acceptance versus unknown delivery, no retry, expired queue entries,
+  fresh/new-session telemetry, HA WebSocket admin checks using actual HA
+  decorator excerpts, schema compatibility (voluptuous/probatio), panel lifecycle
+  and the admin automation service.
+- Chromium-family browser checks pass against the actual panel with a fake HA
+  socket: printer isolation, name/G-code XSS, fractional jog steps, paused motion
+  lock, cold extrusion lock, multiline submission, explicit during-print override,
+  failed-send no retry, stale telemetry, camera navigation, unload and responsive layout.
+- No physical printer motion or heating was triggered during these tests.
+  New machine controls still require validation on real model/firmware combinations.
+- Both native architecture builds and regular HACS package validation are required
+  by the release workflow before publication.

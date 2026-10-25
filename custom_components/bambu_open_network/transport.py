@@ -14,6 +14,7 @@ import queue
 import subprocess
 import tempfile
 import threading
+import time
 from types import SimpleNamespace
 from typing import Any, Callable
 
@@ -26,6 +27,7 @@ MAX_LINE = 4 * 1024 * 1024
 class PublishResult:
     rc: int
     mid: int = 0
+    expires_at: float = 0
     _done: threading.Event = field(default_factory=threading.Event, repr=False)
 
     def wait_for_publish(self, timeout: float | None = None) -> None:
@@ -46,6 +48,8 @@ class OpenBambooClient:
         self.on_disconnect: Callable | None = None
         self.on_message: Callable | None = None
         self.signed_ready = False
+        self.machine_status_at = 0.0
+        self.machine_state = None
         self._connected = False
         self._process: subprocess.Popen | None = None
         self._reader: threading.Thread | None = None
@@ -107,6 +111,8 @@ class OpenBambooClient:
             self.disconnect()
             self.loop_stop()
         self._stop.clear()
+        self.machine_status_at = 0.0
+        self.machine_state = None
         self.camera = CloudFrames()
         self._camera_requested_at = 0.0
         self._disconnect_sent = False
@@ -244,10 +250,14 @@ class OpenBambooClient:
     def _dispatch(self, event):
         kind = event.get("event")
         if kind == "connected":
+            self.machine_status_at = 0.0
+            self.machine_state = None
             self._connected = True
             if self.on_connect:
                 self.on_connect(self, None, {}, 0)
         elif kind == "disconnected":
+            self.machine_status_at = 0.0
+            self.machine_state = None
             self._connected = self.signed_ready = False
             self._discard_queued()
             if self.on_disconnect and not self._disconnect_sent:
@@ -280,6 +290,11 @@ class OpenBambooClient:
                 self.on_message(self, None, SimpleNamespace(
                     topic=f"device/{self.owner._serial}/report",
                     payload=payload.encode("utf-8"), qos=0, retain=False))
+                report = body.get("print")
+                if isinstance(report, dict) and report.get("command") == "push_status":
+                    if isinstance(report.get("gcode_state"), str):
+                        self.machine_state = report["gcode_state"].upper()
+                    self.machine_status_at = time.monotonic()
         elif kind == "error":
             _LOGGER.error("Open Bamboo worker reported an error (code %s)", event.get("rc"))
 
@@ -385,11 +400,11 @@ class OpenBambooClient:
         # The worker automatically subscribes before it emits connected.
         return (0, 1)
 
-    def publish(self, topic, payload, qos=0, retain=False):
+    def publish(self, topic, payload, qos=0, retain=False, *, expires_at=0):
         """Queue without blocking HA, matching Paho's accepted-for-delivery rc."""
         if topic != f"device/{self.owner._serial}/request" or retain or qos not in (0, 1):
             raise ValueError("Unsupported publish")
-        result = PublishResult(rc=4)
+        result = PublishResult(rc=4, expires_at=expires_at)
         if not self._connected or self._stop.is_set():
             result._done.set()
             return result
@@ -428,6 +443,9 @@ class OpenBambooClient:
                 except queue.Empty:
                     continue
                 try:
+                    if result.expires_at and time.monotonic() >= result.expires_at:
+                        result.rc = 16
+                        continue
                     if not self._connected:
                         raise ConnectionError("Printer disconnected before publish")
                     reply = self._request("publish", {"payload": payload, "qos": qos})
