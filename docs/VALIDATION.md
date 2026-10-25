@@ -1,5 +1,17 @@
 # Validation record: v0.3.0 cloud camera
 
+## Completed release checks
+
+[Build run 40234819461](https://github.com/odggg/ha-openbamboo/actions/runs/40234819461)
+built commit 6a6c4f3488f81c2a738b09058a36d1d0e49f461a.
+
+- All 63 offline tests passed locally and on GitHub under Python 3.13.
+- Actual H.264 encode/decode and MJPEG validation passed with PyAV 19.
+- Native amd64 and aarch64 builds, camera URL parsing self-test, and JSON
+  protocol v2/create/destroy smoke tests passed on both architectures.
+- Runtime checksum/corresponding-source packaging passed.
+- Experimental v0.3.0 and both ZIP assets were published.
+
 ## Scope of verification
 
 - Offline regression tests include actual PyAV H.264 encode/decode to JPEG,
@@ -79,3 +91,4 @@ rollback, options login and credential-folder validation.
 
 The native release is built and smoke-tested. It is experimental: no real
 Home Assistant installation, cloud login or physical printer was tested.
+
