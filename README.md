@@ -1,6 +1,6 @@
 # Bambu Open Network v0.5.0
 
-##Reclaim your printer's freedom
+## Reclaim your printer's freedom
 
 ## ⚠️ Required: ha-bambulab must be installed
 
