@@ -6,7 +6,7 @@ commit=7822614fc7d24b4e41b2f394ae067aa88ef4b05a
 arch="${1:?Pass amd64 or aarch64}"
 case "$arch:$(uname -m)" in amd64:x86_64|aarch64:aarch64) ;; *) exit 2 ;; esac
 apk add --no-cache build-base cmake ninja pkgconf git curl-dev openssl-dev \
-  zlib-dev uthash-dev nlohmann-json pax-utils py3-pyelftools python3 ca-certificates
+  zlib-dev uthash-dev nlohmann-json pax-utils lddtreepax python3 ca-certificates
 work="$(mktemp -d)"
 trap 'rm -rf -- "$work"' EXIT
 git init "$work/obn"
@@ -20,7 +20,7 @@ out="$repo_root/custom_components/bambu_open_network/bin/$arch"
 mkdir -p "$out/lib"
 cp "$work/build/obn-ha-worker" "$out/obn-ha-worker"
 # Resolve all transitive dependencies, including OBN, OpenSSL, curl and libc.
-lddtree -l "$work/build/obn-ha-worker" > "$work/deps.txt"
+lddtreepax -l "$work/build/obn-ha-worker" > "$work/deps.txt"
 while IFS= read -r dependency; do
   case "$dependency" in
     */obn-ha-worker) ;;
