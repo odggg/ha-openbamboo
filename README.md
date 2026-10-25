@@ -1,4 +1,4 @@
-# Bambu Open Network v0.5.0
+# Bambu Open Network v0.5.1
 
 ## Reclaim your printer's freedom
 
@@ -15,12 +15,12 @@
 
 Control and monitor your Bambu printer from Home Assistant through Bambu Cloud:
 
-- **Cloud camera:** view your printer without entering a printer IP or LAN access code.
+- **Camera beside the controls:** watch the selected printer directly in Bambu Control while moving axes or sending G-code. Cloud access needs no printer IP or LAN access code.
 - **Machine control:** move X/Y/Z, home the printer, set nozzle/bed temperatures and the part cooling fan.
 - **Extruder controls:** extrude or retract through the active, heated nozzle.
 - **Print controls:** pause, resume or cancel a print.
 - **G-code console:** send one or more lines of custom G-code, with a session history. Also available as an automation action.
-- **One control page:** open **Bambu Control** from the HA sidebar, select your printer and open its Cloud camera.
+- **One control page:** open **Bambu Control** from the HA sidebar; the camera follows your printer selection automatically.
 - **Your printer names:** imported printers use their Bambu names; custom Home Assistant names and existing entity IDs are preserved.
 - **Automatic setup:** sign in with your Bambu account and select printers. Signing certificates are set up automatically.
 
@@ -78,7 +78,7 @@ Allow a little time for the first connection and automatic certificate setup.
 1. As an HA administrator, open **Bambu Control** in the sidebar.
 2. Select your printer by name and wait for a connected status.
 3. Use the axis, temperature, fan, extruder and print controls.
-4. Select **Open camera** to open the printer's **Cloud camera**.
+4. The selected printer's **Cloud camera** appears directly beside the controls. Select **Open camera** for a larger view.
 5. Use the G-code console for your own commands.
 
 For a dashboard, add the printer's **Cloud camera** entity to a camera card.
@@ -115,6 +115,14 @@ The sections below cover compatibility, transport, limitations and development.
   it is not installed through the Home Assistant add-on store.
 
 ### Machine control and G-code behavior
+
+From v0.5.1, Bambu Control embeds the selected printer's authenticated HA MJPEG
+camera feed. The old image is cleared on printer changes, disconnected/unavailable
+states and stale decoder timestamps. Failed requests reconnect with backoff;
+**Reconnect** restarts the feed manually. Switching away from the page stops its
+image request; it resumes on return. No extra camera connection or credentials
+need to be configured. The backend shares its existing per-printer camera session.
+
 
 Commands use the existing signed Open Bamboo connection. Motion buttons require
 an idle printer; extrusion/retraction additionally requires a reported active

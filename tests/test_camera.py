@@ -36,6 +36,16 @@ class CloudCameraTests(unittest.TestCase):
     def feed(self, data, codec="mjpeg"):
         self.frames.feed({"codec": codec, "data": base64.b64encode(data).decode()})
 
+    def test_frame_age_tracks_decoded_frames_and_clears_on_disconnect(self):
+        self.assertIsNone(self.frames.frame_age)
+        self.feed(jpeg())
+        self.assertIsNotNone(self.frames.image(3))
+        self.assertLess(self.frames.frame_age, 3)
+        self.frames._updated = time.monotonic() - 20
+        self.assertGreaterEqual(self.frames.frame_age, 20)
+        self.frames.set_state("disconnected")
+        self.assertIsNone(self.frames.frame_age)
+
     def test_real_mjpeg_frame_is_displayable(self):
         expected = jpeg()
         self.feed(expected)

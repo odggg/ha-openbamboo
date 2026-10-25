@@ -152,3 +152,21 @@ Home Assistant installation, cloud login or physical printer was tested.
   New machine controls still require validation on real model/firmware combinations.
 - Both native architecture builds and regular HACS package validation are required
   by the release workflow before publication.
+
+## v0.5.1 embedded camera validation
+
+- 103 Python regression tests pass locally. Added decoded-frame age coverage,
+  clearing on disconnect, printer-scoped metadata and no camera token in machine telemetry.
+- Both browser suites pass: the original machine-control checks and the new
+  inline-camera checks using a real local multipart MJPEG HTTP fixture in Chromium.
+- Camera checks exercise simultaneous jog controls, immediate old-image removal
+  on printer change, matching frame dimensions per camera, one active image
+  request, reuse across status updates, scoped HA-token rotation, stale-frame
+  removal, HTTP error/backoff, manual reconnect, unavailable/missing camera states,
+  hidden-page release/resume, panel unload and desktop/mobile layout.
+- The MJPEG fixture uses generated test JPEGs and fake camera-scoped tokens.
+  No Bambu account or physical printer is involved.
+- Physical camera transport is the same existing HA Cloud-camera entity; there
+  is no second native video connection. Model/firmware hardware coverage remains limited.
+- Publication requires successful Python/browser jobs, both native architecture
+  builds and the regular HACS release asset validation in the release workflow.

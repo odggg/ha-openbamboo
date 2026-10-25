@@ -1,4 +1,4 @@
-# Bambu Open Network v0.5.0
+# Bambu Open Network v0.5.1
 
 ## ⚠️ Voraussetzung: ha-bambulab muss installiert sein
 
@@ -13,12 +13,12 @@
 
 Steuere und überwache deine Bambu-Drucker über die Bambu Cloud direkt in Home Assistant:
 
-- **Cloud-Kamera:** Druckerbild abrufen, ohne Drucker-IP oder LAN-Access-Code einzugeben.
+- **Kamera direkt bei der Steuerung:** Den ausgewählten Drucker in Bambu Control sehen, während du Achsen bewegst oder G-Code sendest. Der Cloud-Zugriff benötigt keine Drucker-IP und keinen LAN-Access-Code.
 - **Maschinensteuerung:** X/Y/Z bewegen, homen, Düsen- und Betttemperatur sowie Bauteillüfter einstellen.
 - **Extrudersteuerung:** An der aktiven, aufgeheizten Düse extrudieren und Filament zurückziehen.
 - **Drucksteuerung:** Druck pausieren, fortsetzen oder abbrechen.
 - **G-Code-Konsole:** Eigene Befehle mehrzeilig senden, mit Verlauf für die aktuelle Sitzung. Auch als Aktion für Automationen verfügbar.
-- **Eine Bedienseite:** In der HA-Seitenleiste **Bambu Control** öffnen, Drucker auswählen und direkt zur Cloud-Kamera wechseln.
+- **Eine Bedienseite:** In der HA-Seitenleiste **Bambu Control** öffnen. Das Kamerabild wechselt automatisch mit der Druckerauswahl.
 - **Deine Druckernamen:** Namen aus Bambu werden übernommen; eigene HA-Namen und vorhandene Entitäts-IDs bleiben erhalten.
 - **Automatische Einrichtung:** Mit deinem Bambu-Konto anmelden und Drucker auswählen. Die nötigen Signatur-Zertifikate werden automatisch eingerichtet.
 
@@ -83,7 +83,7 @@ Die erste Verbindung und die automatische Einrichtung der Zertifikate können et
 1. Als HA-Administrator in der Seitenleiste **Bambu Control** öffnen.
 2. Den gewünschten Drucker anhand seines Namens auswählen.
 3. Auf einen verbundenen Status warten und die Bedienelemente nutzen.
-4. Über **Kamera öffnen** die **Cloud camera** des Druckers aufrufen.
+4. Die **Cloud camera** des Druckers wird direkt bei den Bedienelementen angezeigt. Mit **Kamera öffnen** kannst du sie zusätzlich vergrößert aufrufen.
 5. Eigene Befehle in der **G-Code-Konsole** eingeben und senden.
 
 Für dein Dashboard die Entität **Cloud camera** des jeweiligen Druckers in einer Kamerakarte verwenden.
@@ -144,6 +144,14 @@ Tatsächliche Signatur-Schlüssel werden nicht im öffentlichen Repository oder 
 Der Fork enthält einen Hersteller-Bootstrap-Wert; Herkunft und Lizenzen stehen in [NOTICE.md](NOTICE.md).
 
 ### Kamera und Übertragung
+
+Ab v0.5.1 zeigt Bambu Control die Kamera des ausgewählten Druckers direkt an.
+Beim Druckerwechsel wird das vorherige Bild sofort entfernt. Nicht verfügbare,
+unterbrochene oder veraltete Bilder werden durch eine Statusanzeige ersetzt.
+Fehlgeschlagene Abrufe werden mit wachsendem Zeitabstand erneut versucht;
+**Neu verbinden** startet den Abruf manuell. Ist die Seite nicht sichtbar,
+wird ihr Bildabruf angehalten und bei der Rückkehr wieder aufgenommen.
+
 
 Die **Cloud camera** verwendet TUTK und liefert JPEG/MJPEG mit bis zu vier decodierten
 Bildern pro Sekunde. H.264 wird in Home Assistant decodiert. Audio, Agora und ein

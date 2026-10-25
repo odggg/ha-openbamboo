@@ -49,6 +49,14 @@ class CommandTests(unittest.TestCase):
         self.manager, self.client = fixture()
         self.status = machine.telemetry(self.client)
 
+    def test_camera_health_is_metadata_only_and_printer_scoped(self):
+        self.client.camera = NS(frame_age=2.5, state="streaming")
+        status = self.manager.status("ONE")
+        self.assertEqual(status["camera_frame_age"], 2.5)
+        self.assertEqual(status["camera_status"], "streaming")
+        self.assertNotIn("camera_frame_age", self.manager.status("OTHER"))
+        self.assertNotIn("access_token", status)
+
     def test_newlines_multiline_and_comments(self):
         self.assertEqual(machine.normalize_gcode(" M105\r\nM114\r\n"), "M105\nM114\n")
         self.assertEqual(machine.normalize_gcode("M105"), "M105\n")

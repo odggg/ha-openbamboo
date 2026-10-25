@@ -80,6 +80,14 @@ class CloudFrames:
                 self._thread.start()
             self._condition.notify_all()
 
+    @property
+    def frame_age(self):
+        """Age of the last decoded frame; no image or credentials in telemetry."""
+        with self._condition:
+            if self._closed or self._jpeg is None or not self._updated:
+                return None
+            return max(0.0, time.monotonic() - self._updated)
+
     def image(self, timeout=0):
         deadline = time.monotonic() + timeout
         with self._condition:

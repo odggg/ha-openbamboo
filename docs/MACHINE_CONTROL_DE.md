@@ -7,7 +7,7 @@ Keine zusätzliche Dashboard-Karte und kein YAML sind für die Oberfläche nöti
 1. **Bambu Control** öffnen und den Drucker anhand seines vorhandenen Namens auswählen.
 2. Auf **Cloud · IDLE** oder **LAN · IDLE** warten. Bei fehlender Signierung oder
    veraltetem Druckerstatus bleiben die Bedienelemente gesperrt.
-3. Bei Bedarf **Kamera öffnen** wählen; dadurch öffnet sich die vorhandene Cloud-camera-Entität.
+3. Ab **v0.5.1** erscheint die Cloud-Kamera des ausgewählten Druckers direkt bei den Bedienelementen. **Kamera öffnen** zeigt sie zusätzlich vergrößert an. Bei Problemen **Neu verbinden** wählen.
 4. Schrittweite und Vorschub wählen und X/Y/Z bewegen. **Home** führt G28 für alle Achsen aus.
 5. Düse, Bett und Bauteillüfter einstellen. Extrudieren/Zurückziehen betrifft die aktive
    Düse und erfordert eine gemeldete Düsentemperatur von mindestens 170 °C.
@@ -87,3 +87,17 @@ Die Aktion benötigt Administratorrechte bei Benutzeraufrufen; HA-interne
 Automationen können sie ebenfalls verwenden. Die gleichen Verbindungs-, Status-
 und Drucksperren gelten auch hier. Ein erfolgreicher Aktionsaufruf bestätigt die
 Annahme durch Open Bamboo, nicht die mechanische Ausführung.
+
+## Kamera direkt beim Steuern
+
+Die Kamera folgt automatisch der Druckerauswahl. Du brauchst keine Kamerakarte
+anzulegen oder eine Kamera-URL einzutragen. Auf breiten Bildschirmen stehen
+Kamera, Achsen und Temperatursteuerung nebeneinander; auf schmalen Bildschirmen
+werden sie untereinander angeordnet.
+
+Beim Wechsel wird das vorherige Druckerbild sofort entfernt. Verbindungsfehler,
+fehlende Kamera-Entitäten und veraltete Bilder werden als Status angezeigt.
+Der Bildabruf wird automatisch erneut versucht oder über **Neu verbinden**
+manuell gestartet. Beim Verlassen/Verbergen der Seite endet ihr Bildabruf;
+die vorhandene gemeinsame Cloud-Sitzung läuft nach ihrem normalen Timeout aus.
+Bei der Rückkehr startet die Ansicht wieder für den ausgewählten Drucker.

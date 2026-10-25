@@ -1,18 +1,19 @@
-Bambu Open Network v0.5.0 adds a Pronterface-style machine-control panel to Home Assistant.
+Bambu Open Network v0.5.1 embeds the selected printer's camera directly in Bambu Control.
 
-- New **Bambu Control** sidebar panel for HA administrators, with the existing printer names and a Cloud-camera shortcut.
-- X/Y/Z jog controls, selectable steps/feed rate, all-axis homing, hot-nozzle extrusion/retraction.
-- Active nozzle/bed temperature readout and targets, part cooling fan, print pause/resume/cancel.
-- Multiline G-code console with session history and the **bambu_open_network.send_gcode** automation action.
-- Existing cloud/LAN Open Bamboo transport and signing; no second printer connection or cloud LAN-access-code requirement.
-- Server-side bounds, fresh-status checks, busy/paused motion locks, explicit busy-print override for raw G-code, expiring queued manual commands and no automatic retries.
-- Native publish acceptance is displayed honestly: it does not confirm firmware execution and is not a serial Pronterface ok/response stream.
-- English/German panel labels and a German usage guide.
+- Watch the Cloud camera beside the axis, extruder and temperature controls.
+- The camera follows the selected printer automatically; the previous image is removed immediately.
+- Existing authenticated Home Assistant MJPEG camera proxy; no camera URL, extra card or credentials to configure.
+- Reconnect button and automatic retry with backoff for failed camera requests.
+- Stale-frame detection uses the backend decoder timestamp, so a static scene is not mistaken for a frozen feed.
+- Disconnected/unavailable cameras show a status instead of retaining the previous printer image.
+- Image requests stop on panel close or when the page is hidden and resume on return.
+- Responsive desktop/mobile layout; the larger camera dialog remains available.
 
-Update in HACS to the latest regular version and restart Home Assistant. Open **Bambu Control** in the sidebar.
+Update Bambu Open Network in HACS, restart Home Assistant, then refresh Bambu Control.
+The camera appears automatically when selecting a connected printer with a Cloud camera entity.
 
-Validation: 101 Python regression tests; browser checks cover printer isolation, multiline submission, XSS handling, motion locks, stale status, no retry, camera navigation and desktop/mobile layout.
-Native Linux amd64/aarch64 builds, cipher/RSA self-tests and HACS asset checks run before publication.
-No physical motion or heating was triggered during development testing. Hardware/firmware validation of the new controls remains to be done.
+Validation: 103 Python regression tests, existing machine-panel browser tests and a real multipart MJPEG browser fixture passed locally. Browser coverage includes simultaneous controls, printer switching, scoped-token rotation, stale/error recovery, stream reuse, page visibility and connection cleanup.
+The release workflow also builds/tests native Linux amd64 and aarch64 runtimes and validates the regular HACS release assets.
+No physical printer motion or heating was triggered during development tests.
 
 Guide: https://github.com/odggg/ha-openbamboo/blob/main/docs/MACHINE_CONTROL_DE.md

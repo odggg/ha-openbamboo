@@ -13,6 +13,7 @@ class BambuMachinePanel extends HTMLElement {
   set hass(value) {
     this._hass = value;
     if (!this.built && this.isConnected) this.build();
+    else if (this.built) this.updateCamera();
   }
   get hass() { return this._hass; }
   text(de, en) {
@@ -21,11 +22,15 @@ class BambuMachinePanel extends HTMLElement {
   $(selector) { return this.shadowRoot.querySelector(selector); }
   connectedCallback() {
     if (this.hass && !this.built) this.build();
+    this.onCameraVisibility = () => this.updateCamera();
+    document.addEventListener("visibilitychange", this.onCameraVisibility);
     this.timer = setInterval(() => this.refresh(), 2000);
     this.refresh();
   }
   disconnectedCallback() {
     clearInterval(this.timer);
+    document.removeEventListener("visibilitychange", this.onCameraVisibility);
+    this.stopCamera();
     this.generation++;
     this.items = [];
     if (this.built) this.updateStatus();
@@ -39,8 +44,8 @@ class BambuMachinePanel extends HTMLElement {
       ':host{display:block;height:100%;overflow:auto;color:var(--primary-text-color);background:var(--primary-background-color);font-family:var(--paper-font-body1_-_font-family,system-ui)}' +
       '*{box-sizing:border-box}header{display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--divider-color);background:var(--card-background-color)}' +
       'h1{font-size:21px;margin:0;font-weight:600}header small{display:block;color:var(--secondary-text-color);font-size:12px;margin-top:3px}.menu{font-size:22px;border:0;padding:7px}' +
-      'main{max-width:1160px;margin:auto;padding:24px}.top{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:20px}.printer{min-width:220px;flex:1}.badge{padding:8px 12px;border-radius:20px;background:var(--secondary-background-color);font-size:13px}.ok{color:var(--success-color,#208548)}' +
-      '.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--card-background-color);border:1px solid var(--divider-color);border-radius:14px;padding:22px;min-width:0}' +
+      'main{max-width:1580px;margin:auto;padding:24px}.top{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:20px}.printer{min-width:220px;flex:1}.badge{padding:8px 12px;border-radius:20px;background:var(--secondary-background-color);font-size:13px}.ok{color:var(--success-color,#208548)}' +
+      '.grid{display:grid;grid-template-columns:minmax(0,1.2fr) repeat(2,minmax(0,1fr));gap:20px}.card{background:var(--card-background-color);border:1px solid var(--divider-color);border-radius:14px;padding:22px;min-width:0}' +
       'h2{font-size:17px;margin:0 0 18px}p{line-height:1.5}.hint{font-size:12px;color:var(--secondary-text-color);margin:12px 0 0}.wide{grid-column:1/-1}' +
       'label{display:block;font-size:13px;color:var(--secondary-text-color);margin-bottom:6px}select,input,textarea,button{font:inherit;color:inherit;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);padding:10px}' +
       'input,select{width:100%;min-width:0}input[type=checkbox]{width:auto;margin-right:8px}button{cursor:pointer;min-height:40px}button:hover:enabled{background:var(--secondary-background-color)}button:disabled{opacity:.4;cursor:default}' +
@@ -51,10 +56,13 @@ class BambuMachinePanel extends HTMLElement {
       'textarea{width:100%;min-height:150px;resize:vertical;font-family:ui-monospace,monospace;line-height:1.6}.console-row{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-top:12px}.console-row label{margin:0}' +
       '#notice{margin:0 0 18px;font-size:14px}#notice.error{color:var(--error-color,#db4437)}#log{padding:0;margin:18px 0 0;list-style:none;max-height:280px;overflow:auto;background:var(--secondary-background-color);border-radius:8px}' +
       '#log li{padding:12px 14px;border-bottom:1px solid var(--divider-color);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:ui-monospace,monospace}.tools{display:flex;gap:8px;flex-wrap:wrap}' +
+      '.camera-card{align-self:start}.camera-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.camera-heading h2{margin:0;overflow-wrap:anywhere}.camera-stage{width:100%;aspect-ratio:16/9;max-height:380px;background:#111b26;border-radius:8px;overflow:hidden}.camera-stage img{display:block;width:100%;height:100%;object-fit:contain}.camera-status{font-size:13px;min-height:2.8em;margin-bottom:0;color:var(--secondary-text-color)}.camera-status.error{color:var(--error-color,#db4437)}' +
+      '@media(min-width:781px) and (max-width:1099px){.grid{grid-template-columns:1fr 1fr}.camera-card{grid-column:1/-1}}' +
       '@media(max-width:780px){main{padding:14px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.card{padding:18px}header{padding:12px 16px}.console-row{align-items:start;flex-direction:column}}' +
       '</style><header><button class="menu" aria-label="Menu">☰</button><div><h1>Bambu Control</h1><small>Open Bamboo Network · Home Assistant</small></div></header>' +
       '<main><div class="top"><div class="printer"><label for="printer" data-label="printer"></label><select id="printer"></select></div><span class="badge" id="connection"></span><button id="camera" data-label="camera"></button></div>' +
       '<p id="notice" role="status" aria-live="polite"></p><div class="grid">' +
+      '<section class="card camera-card"><div class="camera-heading"><h2 id="cameraTitle"></h2><button id="cameraRetry" data-label="cameraRetry"></button></div><div id="cameraStage" class="camera-stage"></div><p id="cameraStatus" class="camera-status" role="status" aria-live="polite"></p></section>' +
       '<section class="card"><h2 data-label="motion"></h2><div class="row"><div><label for="step" data-label="step"></label><select id="step"><option>0.1</option><option>1</option><option selected>10</option></select></div><div><label for="feed" data-label="feed"></label><input id="feed" type="number" min="60" max="6000" value="3000"></div></div>' +
       '<div class="jog"><button class="yplus motion" data-axis="Y" data-sign="1">Y +</button><button class="zplus motion" data-axis="Z" data-sign="1">Z +</button><button class="xminus motion" data-axis="X" data-sign="-1">X −</button><button class="home motion" id="home">⌂ Home</button><button class="xplus motion" data-axis="X" data-sign="1">X +</button><button class="zminus motion" data-axis="Z" data-sign="-1">Z −</button><button class="yminus motion" data-axis="Y" data-sign="-1">Y −</button></div>' +
       '<p class="hint" data-label="motionHint"></p><div class="divider"></div><h2 data-label="extruder"></h2><div class="row"><div><label for="extrusion">mm</label><input id="extrusion" type="number" value="5" min="0.1" max="20" step="0.1"></div><button id="retract" class="extrude" data-label="retract"></button><button id="extrude" class="extrude" data-label="extrude"></button></div><p class="hint" data-label="extrudeHint"></p></section>' +
@@ -64,6 +72,7 @@ class BambuMachinePanel extends HTMLElement {
       '<section class="card wide"><h2 data-label="console"></h2><label for="gcode" data-label="gcodeLabel"></label><textarea id="gcode" spellcheck="false" placeholder="M105&#10;M114"></textarea><div class="console-row"><label><input id="allow" type="checkbox"><span data-label="allow"></span></label><button id="send" class="primary" data-label="send"></button></div><p class="hint" data-label="consoleHint"></p><ul id="log" aria-live="polite"></ul></section></div></main>';
     const labels = {
       printer: ["Drucker", "Printer"], camera: ["Kamera öffnen", "Open camera"],
+      cameraRetry: ["Neu verbinden", "Reconnect"],
       motion: ["Achsen bewegen", "Move axes"], step: ["Schrittweite (mm)", "Step size (mm)"],
       feed: ["X/Y Vorschub (mm/min)", "X/Y feed rate (mm/min)"],
       motionHint: ["Nur im Leerlauf. Z ist auf 600 mm/min begrenzt. Vor dem Verfahren gegebenenfalls homen; Druckraum freihalten. Achsvorzeichen beziehen sich auf G-Code-Koordinaten.", "Idle only. Z feed is capped at 600 mm/min. Home first if needed and keep the build volume clear. Signs refer to G-code axes."],
@@ -84,6 +93,8 @@ class BambuMachinePanel extends HTMLElement {
     });
     this.$(".menu").onclick = () => this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true }));
     this.$("#printer").onchange = () => {
+      this.stopCamera();
+      this.cameraRetryDelay = 5000;
       this.serial = this.$("#printer").value;
       this.$("#allow").checked = false;
       this.updateStatus();
@@ -113,6 +124,11 @@ class BambuMachinePanel extends HTMLElement {
     this.$("#gcode").oninput = () => this.updateStatus();
     this.$("#send").onclick = () => this.send("gcode", { gcode: this.$("#gcode").value,
       allow_during_print: this.$("#allow").checked });
+    this.$("#cameraRetry").onclick = () => {
+      this.stopCamera();
+      this.cameraRetryDelay = 5000;
+      this.updateCamera();
+    };
     this.$("#camera").onclick = () => {
       const camera = this.items.find(item => item.serial === this.serial)?.camera;
       if (camera) this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: camera }, bubbles: true, composed: true }));
@@ -170,6 +186,7 @@ class BambuMachinePanel extends HTMLElement {
     this.$("#stop").disabled = !ready || !["RUNNING", "PAUSE", "PREPARE", "SLICING"].includes(item?.state);
     this.$("#printer").disabled = this.busy || !this.items.length;
     this.$("#camera").disabled = !item?.camera;
+    this.updateCamera();
     const badge = this.$("#connection");
     badge.classList.toggle("ok", Boolean(item?.ready && item?.fresh));
     badge.textContent = !item?.connected ? this.text("Nicht verbunden", "Disconnected")
@@ -182,6 +199,102 @@ class BambuMachinePanel extends HTMLElement {
       this.$("#" + heater + "Reading").textContent = item?.fresh && typeof value === "number"
         ? value.toFixed(0) + " / " + (typeof target === "number" ? target.toFixed(0) : "—") + " °C" : "—";
     });
+  }
+
+
+  updateCamera() {
+    if (!this.built) return;
+    const item = this.items.find(printer => printer.serial === this.serial);
+    const title = this.$("#cameraTitle");
+    title.textContent = this.text("Live-Kamera", "Live camera") + (item ? " · " + item.name : "");
+    const available = Boolean(item?.camera && item?.connected);
+    this.$("#cameraRetry").disabled = !available || document.hidden;
+    let message = "";
+    if (!this.isConnected || document.hidden) message = this.text("Kamera pausiert, solange diese Seite nicht sichtbar ist.", "Camera paused while this page is hidden.");
+    else if (!item) message = this.text("Drucker auswählen, um das Kamerabild zu sehen.", "Select a printer to view its camera.");
+    else if (!item.camera) message = this.text("Für diesen Drucker ist keine Cloud-Kamera eingerichtet.", "No Cloud camera is configured for this printer.");
+    else if (!item.connected) message = this.text("Drucker nicht verbunden.", "Printer disconnected.");
+    const state = item?.camera ? this.hass?.states?.[item.camera] : null;
+    if (!message && (!state || typeof state.attributes?.access_token !== "string" || !state.attributes.access_token)) {
+      message = this.text("Warte auf die Kamera-Entität in Home Assistant …", "Waiting for the camera entity in Home Assistant …");
+    }
+    if (!message && ["unavailable", "unknown"].includes(state.state)) {
+      message = this.text("Kamera derzeit nicht verfügbar. Verbindung wird automatisch erneut geprüft.", "Camera currently unavailable. The connection will be checked again automatically.");
+    }
+    if (message) {
+      this.stopCamera();
+      this.cameraMessage(message);
+      return;
+    }
+    // Same authenticated MJPEG proxy used by Home Assistant's camera component.
+    // The camera-scoped token comes from HA state; it is never logged or stored.
+    const token = state.attributes.access_token;
+    const key = JSON.stringify([this.serial, item.camera, token]);
+    if (key === this.cameraKey) {
+      // Decoder timestamps distinguish a stale feed from an unchanged scene.
+      if (this.cameraImage && (
+          (typeof item.camera_frame_age === "number" && item.camera_frame_age >= 15)
+          || (item.camera_status && !["streaming", "connecting", "idle"].includes(item.camera_status))
+          || (this.cameraImage.naturalWidth > 0 && item.camera_frame_age == null && item.camera_status === "connecting")
+      )) {
+        this.retryCamera(key, this.text("Kamerabild ist veraltet. Verbindung wird erneuert …", "Camera image is stale. Reconnecting …"));
+      }
+      return; // Telemetry refreshes must not restart video.
+    }
+    this.stopCamera();
+    this.cameraKey = key;
+    const image = document.createElement("img");
+    image.alt = this.text("Kamerabild von ", "Camera view of ") + item.name;
+    image.referrerPolicy = "no-referrer";
+    this.cameraImage = image;
+    this.cameraMessage(this.text("Kameraverbindung wird aufgebaut …", "Connecting to camera …"));
+    image.onload = () => {
+      if (this.cameraImage !== image || this.cameraKey !== key) return;
+      this.cameraRetryDelay = 5000;
+      this.cameraMessage(this.text("Kamerabild verbunden", "Camera image connected"));
+    };
+    image.onerror = () => {
+      if (this.cameraImage !== image || this.cameraKey !== key) return;
+      this.retryCamera(key, this.text("Kein Kamerabild. Verbindung wird erneut aufgebaut …", "No camera image. Reconnecting …"));
+    };
+    this.$("#cameraStage").append(image);
+    const path = "/api/camera_proxy_stream/" + encodeURIComponent(item.camera) + "?token=" + encodeURIComponent(token);
+    image.src = this.hass.hassUrl ? this.hass.hassUrl(path) : path;
+  }
+
+  retryCamera(key, message) {
+    this.detachCameraImage();
+    clearTimeout(this.cameraRetryTimer);
+    this.cameraMessage(message, true);
+    const delay = this.cameraRetryDelay || 5000;
+    this.cameraRetryDelay = Math.min(delay * 2, 30000);
+    this.cameraRetryTimer = setTimeout(() => {
+      if (this.cameraKey !== key || !this.isConnected || document.hidden) return;
+      this.cameraKey = null;
+      this.updateCamera();
+    }, delay);
+  }
+
+  detachCameraImage() {
+    if (!this.cameraImage) return;
+    const image = this.cameraImage;
+    this.cameraImage = null;
+    image.onload = image.onerror = null;
+    // Clearing src as well as removing the element closes its MJPEG request.
+    image.removeAttribute("src");
+    image.remove();
+  }
+
+  stopCamera() {
+    clearTimeout(this.cameraRetryTimer);
+    this.cameraRetryTimer = null;
+    this.cameraKey = null;
+    this.detachCameraImage();
+  }
+
+  cameraMessage(message, error = false) {
+    this.$("#cameraStatus").textContent = message;
+    this.$("#cameraStatus").classList.toggle("error", error);
   }
 
   notice(message, error = false) {

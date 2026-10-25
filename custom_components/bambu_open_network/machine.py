@@ -73,6 +73,8 @@ def telemetry(client):
         "bed": numeric(temp, "bed_temp"), "bed_target": numeric(temp, "target_bed_temp"),
         "progress": numeric(job, "print_percentage"),
         "transport": "lan" if client.owner._local_mqtt else "cloud",
+        "camera_frame_age": numeric(_read(client, "camera"), "frame_age"),
+        "camera_status": _read(_read(client, "camera"), "state"),
     }
 
 
