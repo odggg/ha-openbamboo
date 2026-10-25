@@ -4,8 +4,15 @@
 matching key/leaf, freshness, reuse without network, failure rollback,
 invalid response rejection and concurrent-request suppression.
 
-Native builds must run the fork's known-answer app-certificate cipher/RSA
-tests, protocol v3 and existing lifecycle smoke tests on both architectures.
+[Release build 40236792384](https://github.com/odggg/ha-openbamboo/actions/runs/40236792384)
+passed for commit 02064acfe4baf5d264dff4c7c782032362816b55.
+
+- All 71 offline tests passed on GitHub Python 3.13 as well as locally.
+- Native amd64/aarch64 builds passed, including the fork's actual app-cert
+  cipher/RSA known-answer tests.
+- Native protocol v3, rejected relative provisioning paths and worker
+  lifecycle smoke tests passed on both architectures.
+- Runtime/source packaging passed and v0.4.0 release assets were published.
 No real Bambu credentials are used by these offline tests.
 
 Still required: real Bambu certificate provisioning in HA, actual cloud

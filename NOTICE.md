@@ -14,8 +14,8 @@
   HA manages persistent provisioning in a separate native process.
   Its AGPL-3.0-or-later license is preserved in LICENSES/open-bamboo-networking.txt.
   The build adds native/capabilities.cpp and native/cloud_camera.cpp to its DSO,
-  along with OBN's TUTK receiver sources, without editing its
-  source files. Binary releases accompany exact corresponding source.
+  along with OBN's TUTK receiver sources. The reproducible source patch
+  described above is applied at build time. Binary releases accompany exact corresponding source.
 
 - ha-bambulab, ha-bambulab contributors:
   https://github.com/greghesp/ha-bambulab
