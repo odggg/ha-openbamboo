@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.20)
+project(obn_ha_worker LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT OBN_SOURCE_DIR OR NOT OBN_COMMIT)
+  message(FATAL_ERROR "Pass -DOBN_SOURCE_DIR and -DOBN_COMMIT")
+endif()
+set(OBN_VERSION "02.08.04.99" CACHE STRING "" FORCE)
+set(OBN_PATCH_CLIENT_CONF OFF CACHE BOOL "" FORCE)
+set(OBN_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory("${OBN_SOURCE_DIR}" upstream)
+# Compile our small status extension into the same DSO as OBN so its hidden
+# internal C++ symbols never have to cross a compiler/STL ABI boundary.
+target_sources(bambu_networking PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/capabilities.cpp")
+find_package(nlohmann_json REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
+add_executable(obn-ha-worker main.cpp)
+target_include_directories(obn-ha-worker PRIVATE "${OBN_SOURCE_DIR}/include")
+target_compile_definitions(obn-ha-worker PRIVATE ABI_VERSION=0x020804
+  OBN_PINNED_COMMIT="${OBN_COMMIT}" _GLIBCXX_USE_CXX11_ABI=1)
+target_link_libraries(obn-ha-worker PRIVATE bambu_networking nlohmann_json::nlohmann_json Threads::Threads)
+set_target_properties(obn-ha-worker PROPERTIES BUILD_RPATH "$ORIGIN/lib"
+  INSTALL_RPATH "$ORIGIN/lib")
+target_compile_options(obn-ha-worker PRIVATE -Wall -Wextra -Werror)

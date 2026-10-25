@@ -1,0 +1,123 @@
+{
+  "title": "Bambu Open Network",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Bambu Open Network",
+        "menu_options": {
+          "cloud": "Bambu Cloud login",
+          "existing": "Use existing printer connections"
+        }
+      },
+      "cloud": {
+        "title": "Bambu Cloud login",
+        "description": "Sign in with your Bambu account. No printer IP or LAN access code is required. The login uses ha-bambulab's authentication; MQTT uses Open Bamboo.",
+        "data": {
+          "region": "Account region",
+          "email": "Bambu account email",
+          "password": "Password"
+        }
+      },
+      "verify": {
+        "title": "Verification code",
+        "description": "Enter the code from {code_source}. 'Send new email/SMS code' switches from authenticator verification to email/SMS verification.",
+        "data": {
+          "code": "Verification code",
+          "resend": "Send new email/SMS code"
+        }
+      },
+      "printers": {
+        "title": "Printers",
+        "description": "Select printers from this account. Existing ha-bambulab entries are updated in place. Signing credentials are optional here; firmware that requires signed commands still needs them.",
+        "data": {
+          "printers": "Printers",
+          "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
+        }
+      },
+      "existing": {
+        "title": "Use existing printer connections",
+        "description": "Keep the current LAN/cloud settings of your ha-bambulab printers and activate only the Open Bamboo MQTT transport.",
+        "data": {
+          "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed. Check your account credentials.",
+      "cannot_connect": "Unable to reach Bambu Cloud. Try again.",
+      "cloud_blocked": "Bambu Cloud blocked this login or the upstream login dependency is unavailable.",
+      "code_expired": "The code expired. A new email/SMS code was requested.",
+      "code_incorrect": "The code is incorrect. Try again.",
+      "code_needed": "Enter a verification code.",
+      "runtime_unavailable": "Native runtime unavailable. Install a built release for Linux amd64/aarch64.",
+      "outside_config": "Choose a folder inside the Home Assistant configuration folder.",
+      "select_printer": "Select at least one printer from this account."
+    },
+    "abort": {
+      "already_configured": "Open Bamboo transport is already configured.",
+      "no_printers": "This account has no supported bound printers.",
+      "cannot_connect": "Unable to retrieve printers from Bambu Cloud.",
+      "reauth_successful": "Cloud login updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Connection settings",
+        "menu_options": {
+          "cloud": "Bambu Cloud login",
+          "existing": "Use existing printer connections"
+        }
+      },
+      "cloud": {
+        "title": "Bambu Cloud login",
+        "description": "Sign in with your Bambu account. No printer IP or LAN access code is required. The login uses ha-bambulab's authentication; MQTT uses Open Bamboo.",
+        "data": {
+          "region": "Account region",
+          "email": "Bambu account email",
+          "password": "Password"
+        }
+      },
+      "verify": {
+        "title": "Verification code",
+        "description": "Enter the code from {code_source}. 'Send new email/SMS code' switches from authenticator verification to email/SMS verification.",
+        "data": {
+          "code": "Verification code",
+          "resend": "Send new email/SMS code"
+        }
+      },
+      "printers": {
+        "title": "Printers",
+        "description": "Select printers from this account. Existing ha-bambulab entries are updated in place. Signing credentials are optional here; firmware that requires signed commands still needs them.",
+        "data": {
+          "printers": "Printers",
+          "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
+        }
+      },
+      "existing": {
+        "title": "Use existing printer connections",
+        "description": "Keep the current LAN/cloud settings of your ha-bambulab printers and activate only the Open Bamboo MQTT transport.",
+        "data": {
+          "credentials_directory": "Slicer signing credentials folder (inside the HA configuration folder)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed. Check your account credentials.",
+      "cannot_connect": "Unable to reach Bambu Cloud. Try again.",
+      "cloud_blocked": "Bambu Cloud blocked this login or the upstream login dependency is unavailable.",
+      "code_expired": "The code expired. A new email/SMS code was requested.",
+      "code_incorrect": "The code is incorrect. Try again.",
+      "code_needed": "Enter a verification code.",
+      "runtime_unavailable": "Native runtime unavailable. Install a built release for Linux amd64/aarch64.",
+      "outside_config": "Choose a folder inside the Home Assistant configuration folder.",
+      "select_printer": "Select at least one printer from this account."
+    },
+    "abort": {
+      "already_configured": "Open Bamboo transport is already configured.",
+      "no_printers": "This account has no supported bound printers.",
+      "cannot_connect": "Unable to retrieve printers from Bambu Cloud.",
+      "reauth_successful": "Cloud login updated."
+    }
+  }
+}

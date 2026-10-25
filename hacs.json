@@ -1,0 +1,7 @@
+{
+  "name": "Bambu Open Network",
+  "homeassistant": "2025.1.0",
+  "zip_release": true,
+  "filename": "bambu_open_network.zip",
+  "hide_default_branch": true
+}

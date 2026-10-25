@@ -1,0 +1,74 @@
+name: Build HACS release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s tests -v
+  native:
+    needs: python
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build isolated musl runtime and execute native self-test
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src alpine:3.22 \
+            sh scripts/build-native.sh "${{ matrix.arch }}"
+      - name: Native JSON protocol smoke test (no printer)
+        run: python3 scripts/native_smoke.py "${{ matrix.arch }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.arch }}
+          path: |
+            custom_components/bambu_open_network/bin/${{ matrix.arch }}
+            vendor
+            LICENSES
+  package:
+    needs: [python, native]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          merge-multiple: true
+          path: .
+      - run: python3 scripts/configure_repository.py "$GITHUB_REPOSITORY"
+      - run: python3 scripts/package_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hacs-release
+          path: dist/*.zip
+      - name: Publish experimental HACS release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="v$(python3 -c 'import json; print(json.load(open("custom_components/bambu_open_network/manifest.json"))["version"])')"
+          if gh release view "$version" >/dev/null 2>&1; then
+            echo "Release $version already exists; keeping its assets unchanged."
+            exit 0
+          fi
+          gh release create "$version" dist/*.zip --target "$GITHUB_SHA" \
+            --prerelease --title "Bambu Open Network $version" \
+            --notes "Experimental MQTT transport adapter with Bambu Cloud login. Native amd64/aarch64 builds and offline tests passed. Live Home Assistant/printer validation is still pending."

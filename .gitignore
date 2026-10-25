@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+dist/
+vendor/
+custom_components/bambu_open_network/bin/
+.test-tmp/

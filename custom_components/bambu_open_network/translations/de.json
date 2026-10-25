@@ -1,0 +1,123 @@
+{
+  "title": "Bambu Open Network",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Bambu Open Network verbinden",
+        "menu_options": {
+          "cloud": "Mit Bambu Cloud anmelden",
+          "existing": "Vorhandene Druckerverbindungen verwenden"
+        }
+      },
+      "cloud": {
+        "title": "Mit Bambu Cloud anmelden",
+        "description": "Mit deinem Bambu-Konto anmelden. Drucker-IP und LAN-Access-Code sind nicht erforderlich. Die Anmeldung nutzt ha-bambulab; MQTT läuft über Open Bamboo.",
+        "data": {
+          "region": "Kontoregion",
+          "email": "E-Mail des Bambu-Kontos",
+          "password": "Passwort"
+        }
+      },
+      "verify": {
+        "title": "Bestätigungscode",
+        "description": "Code aus {code_source} eingeben. „Neuen E-Mail-/SMS-Code senden“ wechselt von der Authenticator-Prüfung zur E-Mail-/SMS-Prüfung.",
+        "data": {
+          "code": "Bestätigungscode",
+          "resend": "Neuen E-Mail-/SMS-Code senden"
+        }
+      },
+      "printers": {
+        "title": "Drucker",
+        "description": "Drucker aus diesem Konto auswählen. Vorhandene ha-bambulab-Einträge werden aktualisiert. Signatur-Zertifikate sind hier optional; Firmware mit Signaturpflicht benötigt sie weiterhin.",
+        "data": {
+          "printers": "Drucker",
+          "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
+        }
+      },
+      "existing": {
+        "title": "Vorhandene Druckerverbindungen verwenden",
+        "description": "Die aktuellen LAN-/Cloud-Einstellungen deiner ha-bambulab-Drucker beibehalten und nur den Open-Bamboo-MQTT-Transport aktivieren.",
+        "data": {
+          "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Anmeldung fehlgeschlagen. Zugangsdaten prüfen.",
+      "cannot_connect": "Bambu Cloud ist nicht erreichbar. Erneut versuchen.",
+      "cloud_blocked": "Bambu Cloud blockiert die Anmeldung oder die Anmeldebibliothek von ha-bambulab ist nicht verfügbar.",
+      "code_expired": "Der Code ist abgelaufen. Ein neuer E-Mail-/SMS-Code wurde angefordert.",
+      "code_incorrect": "Der Code ist falsch. Erneut versuchen.",
+      "code_needed": "Einen Bestätigungscode eingeben.",
+      "runtime_unavailable": "Native Laufzeit fehlt. Ein gebautes Release für Linux amd64/aarch64 installieren.",
+      "outside_config": "Einen Ordner innerhalb des Home-Assistant-Konfigurationsordners wählen.",
+      "select_printer": "Mindestens einen Drucker aus diesem Konto auswählen."
+    },
+    "abort": {
+      "already_configured": "Open-Bamboo-Verbindung ist bereits konfiguriert.",
+      "no_printers": "Dieses Konto enthält keine unterstützten verknüpften Drucker.",
+      "cannot_connect": "Die Druckerliste konnte nicht aus der Bambu Cloud geladen werden.",
+      "reauth_successful": "Cloud-Anmeldung aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Verbindungseinstellungen",
+        "menu_options": {
+          "cloud": "Mit Bambu Cloud anmelden",
+          "existing": "Vorhandene Druckerverbindungen verwenden"
+        }
+      },
+      "cloud": {
+        "title": "Mit Bambu Cloud anmelden",
+        "description": "Mit deinem Bambu-Konto anmelden. Drucker-IP und LAN-Access-Code sind nicht erforderlich. Die Anmeldung nutzt ha-bambulab; MQTT läuft über Open Bamboo.",
+        "data": {
+          "region": "Kontoregion",
+          "email": "E-Mail des Bambu-Kontos",
+          "password": "Passwort"
+        }
+      },
+      "verify": {
+        "title": "Bestätigungscode",
+        "description": "Code aus {code_source} eingeben. „Neuen E-Mail-/SMS-Code senden“ wechselt von der Authenticator-Prüfung zur E-Mail-/SMS-Prüfung.",
+        "data": {
+          "code": "Bestätigungscode",
+          "resend": "Neuen E-Mail-/SMS-Code senden"
+        }
+      },
+      "printers": {
+        "title": "Drucker",
+        "description": "Drucker aus diesem Konto auswählen. Vorhandene ha-bambulab-Einträge werden aktualisiert. Signatur-Zertifikate sind hier optional; Firmware mit Signaturpflicht benötigt sie weiterhin.",
+        "data": {
+          "printers": "Drucker",
+          "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
+        }
+      },
+      "existing": {
+        "title": "Vorhandene Druckerverbindungen verwenden",
+        "description": "Die aktuellen LAN-/Cloud-Einstellungen deiner ha-bambulab-Drucker beibehalten und nur den Open-Bamboo-MQTT-Transport aktivieren.",
+        "data": {
+          "credentials_directory": "Ordner mit Slicer-Signatur-Zertifikaten (im HA-Konfigurationsordner)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Anmeldung fehlgeschlagen. Zugangsdaten prüfen.",
+      "cannot_connect": "Bambu Cloud ist nicht erreichbar. Erneut versuchen.",
+      "cloud_blocked": "Bambu Cloud blockiert die Anmeldung oder die Anmeldebibliothek von ha-bambulab ist nicht verfügbar.",
+      "code_expired": "Der Code ist abgelaufen. Ein neuer E-Mail-/SMS-Code wurde angefordert.",
+      "code_incorrect": "Der Code ist falsch. Erneut versuchen.",
+      "code_needed": "Einen Bestätigungscode eingeben.",
+      "runtime_unavailable": "Native Laufzeit fehlt. Ein gebautes Release für Linux amd64/aarch64 installieren.",
+      "outside_config": "Einen Ordner innerhalb des Home-Assistant-Konfigurationsordners wählen.",
+      "select_printer": "Mindestens einen Drucker aus diesem Konto auswählen."
+    },
+    "abort": {
+      "already_configured": "Open-Bamboo-Verbindung ist bereits konfiguriert.",
+      "no_printers": "Dieses Konto enthält keine unterstützten verknüpften Drucker.",
+      "cannot_connect": "Die Druckerliste konnte nicht aus der Bambu Cloud geladen werden.",
+      "reauth_successful": "Cloud-Anmeldung aktualisiert."
+    }
+  }
+}

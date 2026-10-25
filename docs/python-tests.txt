@@ -1,0 +1,57 @@
+test_account_access_code_is_optional_and_can_be_updated_automatically (test_cloud.CloudEntriesTests.test_account_access_code_is_optional_and_can_be_updated_automatically) ... ok
+test_duplicate_existing_serial_is_not_silently_replaced (test_cloud.CloudEntriesTests.test_duplicate_existing_serial_is_not_silently_replaced) ... ok
+test_existing_printer_is_updated_without_recreating_it (test_cloud.CloudEntriesTests.test_existing_printer_is_updated_without_recreating_it) ... ok
+test_failed_add_rolls_back_previous_updates (test_cloud.CloudEntriesTests.test_failed_add_rolls_back_previous_updates) ... ok
+test_import_hook_is_reversible (test_cloud.CloudEntriesTests.test_import_hook_is_reversible) ... ok
+test_new_printer_needs_neither_ip_nor_access_code (test_cloud.CloudEntriesTests.test_new_printer_needs_neither_ip_nor_access_code) ... ok
+test_auth_errors_do_not_expose_server_responses (test_cloud.CloudLoginTests.test_auth_errors_do_not_expose_server_responses) ... ok
+test_cloudflare_has_a_distinct_error (test_cloud.CloudLoginTests.test_cloudflare_has_a_distinct_error) ... ok
+test_connection_failure_is_not_an_empty_printer_list (test_cloud.CloudLoginTests.test_connection_failure_is_not_an_empty_printer_list) ... ok
+test_csrf_failure_falls_back_to_email_code (test_cloud.CloudLoginTests.test_csrf_failure_falls_back_to_email_code) ... ok
+test_direct_login_drops_password_and_exposes_only_session_fields (test_cloud.CloudLoginTests.test_direct_login_drops_password_and_exposes_only_session_fields) ... ok
+test_email_code_login (test_cloud.CloudLoginTests.test_email_code_login) ... ok
+test_invalid_upstream_token_is_not_saved (test_cloud.CloudLoginTests.test_invalid_upstream_token_is_not_saved) ... ok
+test_printer_list_is_sanitized_and_deduplicated (test_cloud.CloudLoginTests.test_printer_list_is_sanitized_and_deduplicated) ... ok
+test_resend_requests_email_code (test_cloud.CloudLoginTests.test_resend_requests_email_code) ... ok
+test_two_factor_login (test_cloud.CloudLoginTests.test_two_factor_login) ... ok
+test_wrong_or_expired_code_is_retryable (test_cloud.CloudLoginTests.test_wrong_or_expired_code_is_retryable) ... ok
+test_credential_folder_cannot_escape_ha_config (test_cloud_flow.CloudFlowTests.test_credential_folder_cannot_escape_ha_config) ... ok
+test_email_challenge_then_device_selection (test_cloud_flow.CloudFlowTests.test_email_challenge_then_device_selection) ... ok
+test_full_login_selects_cloud_printer_without_access_code_input (test_cloud_flow.CloudFlowTests.test_full_login_selects_cloud_printer_without_access_code_input) ... ok
+test_initial_menu_offers_cloud_and_existing_entries (test_cloud_flow.CloudFlowTests.test_initial_menu_offers_cloud_and_existing_entries) ... ok
+test_options_login_reuses_the_existing_adapter_entry (test_cloud_flow.CloudFlowTests.test_options_login_reuses_the_existing_adapter_entry) ... ok
+test_password_is_masked_and_not_reused_on_failure (test_cloud_flow.CloudFlowTests.test_password_is_masked_and_not_reused_on_failure) ... ok
+test_switching_to_existing_mode_drops_account_from_new_options (test_cloud_flow.CloudFlowTests.test_switching_to_existing_mode_drops_account_from_new_options) ... ok
+test_unlisted_printer_cannot_be_added (test_cloud_flow.CloudFlowTests.test_unlisted_printer_cannot_be_added) ... ok
+test_reviewed_upstream_methods_match_inspect_contract (test_contract.ContractTests.test_reviewed_upstream_methods_match_inspect_contract) ... ok
+test_existing_class_references_use_new_transport (test_patch.PatchTests.test_existing_class_references_use_new_transport) ... ok
+test_guard_only_relaxes_for_our_live_acknowledged_backend (test_patch.PatchTests.test_guard_only_relaxes_for_our_live_acknowledged_backend) ... ok
+test_interleaved_config_flows_keep_owner_context (test_patch.PatchTests.test_interleaved_config_flows_keep_owner_context) ... ok
+test_mock_printers_keep_original_transport (test_patch.PatchTests.test_mock_printers_keep_original_transport) ... ok
+test_no_global_paho_patch (test_patch.PatchTests.test_no_global_paho_patch) ... ok
+test_restore_preserves_original_objects (test_patch.PatchTests.test_restore_preserves_original_objects) ... ok
+test_unknown_contract_leaves_upstream_untouched (test_patch.PatchTests.test_unknown_contract_leaves_upstream_untouched) ... ok
+test_acknowledged_signer_unlocks_and_revokes_on_disconnect (test_transport.TransportTests.test_acknowledged_signer_unlocks_and_revokes_on_disconnect) ... ok
+test_cloud_mqtt_uses_account_token_without_lan_code (test_transport.TransportTests.test_cloud_mqtt_uses_account_token_without_lan_code) ... ok
+test_credentials_are_absent_from_command_line (test_transport.TransportTests.test_credentials_are_absent_from_command_line) ... ok
+test_disconnect_drops_buffered_actions (test_transport.TransportTests.test_disconnect_drops_buffered_actions) ... ok
+test_firmware_signature_error_revokes_readiness (test_transport.TransportTests.test_firmware_signature_error_revokes_readiness) ... ok
+test_mismatched_serial_is_not_forwarded (test_transport.TransportTests.test_mismatched_serial_is_not_forwarded) ... ok
+test_missing_credentials_do_not_unlock_signed_commands (test_transport.TransportTests.test_missing_credentials_do_not_unlock_signed_commands) ... Signed commands need valid credentials and printer certificate acknowledgement
+ok
+test_platform_selection (test_transport.TransportTests.test_platform_selection) ... ok
+test_publish_returns_before_slow_native_reply (test_transport.TransportTests.test_publish_returns_before_slow_native_reply) ... Open Bamboo publish failed; command was not retried
+ok
+test_reject_retained_motion_and_non_tls_port (test_transport.TransportTests.test_reject_retained_motion_and_non_tls_port) ... ok
+test_roundtrip_with_publish_inside_callback (test_transport.TransportTests.test_roundtrip_with_publish_inside_callback) ... ok
+test_stop_reaps_worker_and_removes_session (test_transport.TransportTests.test_stop_reaps_worker_and_removes_session) ... ok
+test_two_printers_have_separate_processes_and_state (test_transport.TransportTests.test_two_printers_have_separate_processes_and_state) ... ok
+test_unknown_outcome_disconnects_without_retry (test_transport.TransportTests.test_unknown_outcome_disconnects_without_retry) ... Open Bamboo publish failed; command was not retried
+ok
+test_worker_rejection_is_recorded (test_transport.TransportTests.test_worker_rejection_is_recorded) ... Open Bamboo rejected queued publish (rc=-26)
+ok
+
+----------------------------------------------------------------------
+Ran 48 tests in 7.746s
+
+OK
