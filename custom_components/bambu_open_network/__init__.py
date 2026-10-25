@@ -16,6 +16,7 @@ from .const import CONF_CREDENTIALS, DEFAULT_CREDENTIALS, DOMAIN, UPSTREAM_DOMAI
 from .cloud_entries import CloudImportHook, entry_settings, sync_cloud_printers
 from .patch import IncompatibleUpstream, TransportPatch
 from .credentials import CredentialManager
+from .names import PrinterNamePatch
 from .runtime import RuntimeUnavailable, validate_runtime
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         settings.get(CONF_CREDENTIALS, DEFAULT_CREDENTIALS))).resolve()
     patch = None
     import_hook = None
+    name_patch = None
     state_root = Path(hass.config.path(DOMAIN, "state"))
     try:
         command = await hass.async_add_executor_job(validate_runtime)
@@ -51,9 +53,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         import_hook.install()
         patch.cloud_import_hook = import_hook
         patch.credentials_manager = CredentialManager(command, credentials, hass.config.config_dir)
+        coordinator_module = await hass.async_add_executor_job(
+            importlib.import_module, "custom_components.bambu_lab.coordinator")
+        name_patch = PrinterNamePatch(coordinator_module.BambuDataUpdateCoordinator)
+        name_patch.install()
+        patch.name_patch = name_patch
         if settings.get("connection_mode") == "cloud":
             await sync_cloud_printers(hass, settings)
     except Exception as err:
+        if name_patch:
+            name_patch.restore()
         if import_hook:
             import_hook.restore()
         if patch:
@@ -70,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data.pop(DOMAIN, None)
         patch.restore()
         import_hook.restore()
+        name_patch.restore()
         await hass.async_add_executor_job(patch.stop)
         raise ConfigEntryError("Unable to set up the Open Bamboo cloud camera") from None
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -99,6 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def shutdown(event):
         patch.restore()
         patch.cloud_import_hook.restore()
+        patch.name_patch.restore()
         await hass.async_add_executor_job(patch.stop)
 
     entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, shutdown))
@@ -117,6 +128,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if patch:
         patch.restore()
         patch.cloud_import_hook.restore()
+        patch.name_patch.restore()
         await hass.async_add_executor_job(patch.stop)
         await _reload_upstream(hass)
     return True

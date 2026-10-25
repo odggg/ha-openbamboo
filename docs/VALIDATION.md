@@ -1,3 +1,19 @@
+# Regular release: v0.4.1
+
+Changes: default regular HACS publishing, imported Bambu printer entry/device
+names, preserved custom HA names and Google/OAuth login documentation.
+The real release ZIP and GitHub Latest endpoint are checked by the publishing
+job so the regular version is the default HACS download.
+
+80 offline tests pass locally. Name regression coverage includes actual import-hook titles, serial-number
+upgrades, custom names, later cloud renames, Unicode/fallback names, rollback
+and reversible device metadata. Existing IDs remain stable.
+
+The owner reported v0.4.0 working on 25 October 2026. This report did not
+itemize every model/firmware combination.
+
+## Previous releases
+
 # Validation: v0.4.0 automatic credentials
 
 71 offline tests pass locally, including generated test-only RSA credentials,

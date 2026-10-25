@@ -6,6 +6,16 @@ from .const import DOMAIN, UPSTREAM_DOMAIN
 def entry_settings(entry):
     return {**entry.data, **entry.options}
 
+def printer_name(printer):
+    value = printer.get("name")
+    return value.strip() if isinstance(value, str) and value.strip() else printer["serial"]
+
+
+def generic_name(value, printer):
+    serial, model = printer["serial"], printer.get("device_type", "")
+    return not isinstance(value, str) or value.strip() in ("", serial, model, f"{model}_{serial}")
+
+
 def printer_payload(session, printer, old_options=None):
     if not all(isinstance(session.get(key), str) and session[key]
                for key in ("region", "email", "username", "auth_token")):
@@ -20,7 +30,15 @@ def printer_payload(session, printer, old_options=None):
         options.setdefault(key, value)
     options.update({key: session[key]
                     for key in ("region", "email", "username", "auth_token")})
-    options.update({"local_mqtt": False, "name": printer["name"]})
+    cloud_name = printer_name(printer)
+    old_name = options.get("name")
+    # Preserve a friendly HA name unless we can identify it as a previous
+    # cloud import; name_by_user in HA's registry is always left untouched.
+    if generic_name(old_name, printer) or old_name == options.get("_open_bamboo_cloud_name"):
+        options["name"] = cloud_name
+    elif isinstance(old_name, str):
+        options["name"] = old_name.strip()
+    options.update({"local_mqtt": False, "_open_bamboo_cloud_name": cloud_name})
     if printer.get("access_code"):
         options["access_code"] = printer["access_code"]
     return {"adapter": DOMAIN,
@@ -54,7 +72,8 @@ class CloudImportHook:
             await flow.async_set_unique_id(serial)
             flow._abort_if_unique_id_configured()
             return flow.async_create_entry(
-                title=serial, data=dict(user_input["data"]),
+                title=printer_name({**user_input["data"], "name": user_input["options"].get("name")}),
+                data=dict(user_input["data"]),
                 options=dict(user_input["options"]))
 
         self.flow_class.async_step_import = async_step_import
@@ -90,9 +109,16 @@ async def sync_cloud_printers(hass, settings):
                 raise ValueError("Multiple ha-bambulab entries have the same serial")
             if existing:
                 entry = existing[0]
-                payload = printer_payload(session, printer, entry.options)
-                modified.append((entry, dict(entry.options)))
-                entries.async_update_entry(entry, options=payload["options"])
+                previous = dict(entry.options)
+                if "name" not in previous and isinstance(entry.data.get("name"), str):
+                    previous["name"] = entry.data["name"]
+                payload = printer_payload(session, printer, previous)
+                old_title = getattr(entry, "title", serial)
+                modified.append((entry, dict(entry.options), old_title))
+                updates = {"options": payload["options"]}
+                if generic_name(old_title, printer) or old_title == entry.options.get("_open_bamboo_cloud_name"):
+                    updates["title"] = payload["options"]["name"]
+                entries.async_update_entry(entry, **updates)
             else:
                 result = await entries.flow.async_init(
                     UPSTREAM_DOMAIN, context={"source": "import"},
@@ -103,6 +129,6 @@ async def sync_cloud_printers(hass, settings):
     except Exception:
         for entry_id in reversed(created):
             await entries.async_remove(entry_id)
-        for entry, old_options in reversed(modified):
-            entries.async_update_entry(entry, options=old_options)
+        for entry, old_options, old_title in reversed(modified):
+            entries.async_update_entry(entry, options=old_options, title=old_title)
         raise

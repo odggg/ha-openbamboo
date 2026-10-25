@@ -118,7 +118,8 @@ class CloudLogin:
                 model = self.client.get_device_type_from_device_product_name(product)
                 result.append({
                     "serial": serial, "device_type": str(model),
-                    "name": str(device.get("name") or product),
+                    "name": device["name"].strip() if isinstance(device.get("name"), str)
+                        and device["name"].strip() else product.strip(),
                     # Account-provided code is optional and only supports local
                     # features. Cloud MQTT never authenticates with this value.
                     "access_code": device.get("dev_access_code", "")

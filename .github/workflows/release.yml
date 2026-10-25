@@ -60,7 +60,7 @@ jobs:
         with:
           name: hacs-release
           path: dist/*.zip
-      - name: Publish experimental HACS release
+      - name: Publish HACS release
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,5 +71,8 @@ jobs:
             exit 0
           fi
           gh release create "$version" dist/*.zip --target "$GITHUB_SHA" \
-            --prerelease --title "Bambu Open Network $version" \
-            --notes "Experimental cloud MQTT control and TUTK camera liveview. Slicer signing credentials are fetched automatically into the HA credentials folder using the persano Open Bamboo fork. Native amd64/aarch64 builds and offline tests passed; physical Home Assistant/printer validation is still pending."
+            --latest --title "Bambu Open Network $version" \
+            --notes-file docs/RELEASE_NOTES.md
+          gh api "repos/$GITHUB_REPOSITORY/releases/latest" > dist/release-metadata.json
+          python3 scripts/check_hacs_release.py dist/release-metadata.json \
+            --tag "$version" --assets dist --regular

@@ -1,20 +1,30 @@
-# Bambu Open Network v0.4.0
+# Bambu Open Network v0.4.1
 
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=odggg&repository=ha-openbamboo&category=integration)
 
-Experimental HACS companion for [ha-bambulab](https://github.com/greghesp/ha-bambulab):
+HACS companion for [ha-bambulab](https://github.com/greghesp/ha-bambulab):
 cloud MQTT control and cloud TUTK camera liveview using real Open Bamboo Networking.
 
 ## Install
 
 1. Keep ha-bambulab v2.2.26 installed. Linux amd64/aarch64 are supported.
-2. HACS > Download / Redownload > Need a different version? > Release > **v0.4.0**.
+2. Open the HACS button above and choose **Download**. HACS selects the latest regular release automatically; no beta/version selection is needed.
 3. Restart Home Assistant.
 4. Add **Bambu Open Network**, choose **Bambu Cloud login**, sign in and select printers.
 
 Existing selected Bambu Lab entries are updated in place, preserving IDs and local settings.
 No manual printer IP or LAN access code is needed for cloud MQTT or Cloud camera.
 Use the built release asset bambu_open_network.zip; automatic GitHub source archives lack runtimes.
+
+**Using Google sign-in?** [Set up Bambu email/password login](docs/GOOGLE_LOGIN.md)
+([Deutsch](docs/GOOGLE_LOGIN_DE.md)).
+
+## Imported printer names
+
+New printer entries and HA devices use their assigned Bambu Cloud names.
+Existing serial-number titles are corrected when loading/importing the selected
+cloud printers. Custom Home Assistant names and existing entity IDs are preserved.
+
 
 ## Automatic slicer certificates
 
@@ -97,8 +107,8 @@ GitHub Actions builds both native architectures and runs the fork's actual
 app-certificate cipher/RSA known-answer tests before release packaging.
 Runtime protocol v3, source pin and full SHA256 checks prevent mixing older runtimes.
 
-**Actual Home Assistant/cloud-camera/printer operation has not been validated here.**
-This is an experimental prerelease. See [validation](docs/VALIDATION.md).
+The owner reported successful operation of **v0.4.0** on 25 October 2026.
+Model and firmware coverage remains limited. See [validation](docs/VALIDATION.md).
 
 ## Development and source
 
@@ -112,4 +122,4 @@ HA owns persistent provisioning and renewal. Reviewed ha-bambulab:
 v2.2.26 @ cd67ed90e08561175a831f35b45773fe427996d7.
 
 AGPL-3.0-or-later. Corresponding source accompanies binary releases.
-[Architecture](docs/ARCHITECTURE.md) · [German setup](PUBLISH_DE.md) · [Notices](NOTICE.md).
+[Architecture](docs/ARCHITECTURE.md) Ã‚Â· [German setup](PUBLISH_DE.md) Ã‚Â· [Notices](NOTICE.md).

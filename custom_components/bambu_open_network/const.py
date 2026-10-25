@@ -1,7 +1,7 @@
 """Constants for the Open Bamboo transport extension."""
 DOMAIN = "bambu_open_network"
 NAME = "Bambu Open Network"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 UPSTREAM_DOMAIN = "bambu_lab"
 PROTOCOL_VERSION = 3
 OBN_REPOSITORY = "persano/open-bamboo-networking"
