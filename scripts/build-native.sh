@@ -20,7 +20,7 @@ out="$repo_root/custom_components/bambu_open_network/bin/$arch"
 mkdir -p "$out/lib"
 cp "$work/build/obn-ha-worker" "$out/obn-ha-worker"
 # Resolve all transitive dependencies, including OBN, OpenSSL, curl and libc.
-lddtreepax -l "$work/build/obn-ha-worker" > "$work/deps.txt"
+python3 /usr/bin/lddtreepax -l "$work/build/obn-ha-worker" > "$work/deps.txt"
 while IFS= read -r dependency; do
   case "$dependency" in
     */obn-ha-worker) ;;
