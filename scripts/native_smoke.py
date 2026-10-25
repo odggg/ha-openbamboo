@@ -9,7 +9,8 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 runtime = root / "custom_components/bambu_open_network/bin" / sys.argv[1]
 for name in ("loader", "obn-ha-worker"):
-    (runtime / name).chmod(0o755)
+    if not os.access(runtime / name, os.X_OK):
+        (runtime / name).chmod(0o755)
 command = [str(runtime / "loader"), "--library-path", str(runtime / "lib"),
            str(runtime / "obn-ha-worker")]
 out = subprocess.run(command + ["--self-test"], capture_output=True, text=True, check=True, timeout=10)
