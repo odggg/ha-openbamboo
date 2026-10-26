@@ -1,4 +1,4 @@
-# Bambu Open Network v0.5.1
+# Bambu Open Network v0.5.2
 
 ## Reclaim your printer's freedom
 
@@ -116,6 +116,14 @@ The sections below cover compatibility, transport, limitations and development.
 
 ### Machine control and G-code behavior
 
+v0.5.2 replaces arbitrary machine-command IDs with Open Bamboo's shared Studio
+counter (20000–29999), assigned in the native worker before signing. Matching
+printer replies now distinguish **acknowledged**, **rejected** (with firmware
+code) and **submitted without acknowledgement**. None independently proves
+physical execution. Late matching replies appear in the panel history.
+Update, restart HA fully and refresh the panel with Ctrl+F5.
+
+
 From v0.5.1, Bambu Control embeds the selected printer's authenticated HA MJPEG
 camera feed. The old image is cleared on printer changes, disconnected/unavailable
 states and stale decoder timestamps. Failed requests reconnect with backoff;
@@ -220,7 +228,7 @@ generated test-only keys, failure rollback, freshness checks and login/control r
 
 GitHub Actions builds both native architectures and runs the fork's actual
 app-certificate cipher/RSA known-answer tests before release packaging.
-Runtime protocol v3, source pin and full SHA256 checks prevent mixing older runtimes.
+Runtime protocol v4, source pin and full SHA256 checks prevent mixing older runtimes.
 
 The owner reported successful operation of **v0.4.0** on 25 October 2026.
 Model and firmware coverage remains limited. See [validation](docs/VALIDATION.md).

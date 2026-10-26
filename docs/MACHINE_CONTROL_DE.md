@@ -101,3 +101,17 @@ Der Bildabruf wird automatisch erneut versucht oder über **Neu verbinden**
 manuell gestartet. Beim Verlassen/Verbergen der Seite endet ihr Bildabruf;
 die vorhandene gemeinsame Cloud-Sitzung läuft nach ihrem normalen Timeout aus.
 Bei der Rückkehr startet die Ansicht wieder für den ausgewählten Drucker.
+
+## Befehlsstatus ab v0.5.2
+
+- **Ohne Druckerquittung übermittelt:** Open Bamboo hat den Befehl angenommen,
+  innerhalb des kurzen Antwortfensters kam keine passende Druckerantwort.
+- **Quittiert:** Eine passende Firmware-Antwort wurde empfangen. Das ist keine
+  unabhängige Bestätigung der mechanischen Ausführung.
+- **Abgelehnt:** Die Firmware hat einen Fehler zurückgemeldet; der numerische
+  Code wird angezeigt. Ein solcher Befehl wird nicht automatisch wiederholt.
+
+Die Zuordnung verwendet die Druckerverbindung, Befehlsgruppe, den Befehlsnamen
+und die tatsächlich gesendete Studio-ID. Später eintreffende passende Antworten
+werden im Verlauf ergänzt. Die letzte bereinigte Antwort steht außerdem in den
+Diagnosedaten unter **last_command_reply**.

@@ -19,6 +19,7 @@ from types import SimpleNamespace
 from typing import Any, Callable
 
 from .cloud_camera import CloudFrames, ERRORS
+from .command_feedback import CommandReplies
 
 _LOGGER = logging.getLogger(__name__)
 MAX_LINE = 4 * 1024 * 1024
@@ -28,6 +29,7 @@ class PublishResult:
     rc: int
     mid: int = 0
     expires_at: float = 0
+    sequence_id: str | None = None
     _done: threading.Event = field(default_factory=threading.Event, repr=False)
 
     def wait_for_publish(self, timeout: float | None = None) -> None:
@@ -68,6 +70,7 @@ class OpenBambooClient:
         self._password = ""
         self._disconnect_sent = False
         self.camera = CloudFrames()
+        self.command_replies = CommandReplies()
         self._camera_request_lock = threading.Lock()
         self._camera_requested_at = 0.0
 
@@ -111,6 +114,7 @@ class OpenBambooClient:
             self.disconnect()
             self.loop_stop()
         self._stop.clear()
+        self.command_replies.reset()
         self.machine_status_at = 0.0
         self.machine_state = None
         self.camera = CloudFrames()
@@ -250,12 +254,14 @@ class OpenBambooClient:
     def _dispatch(self, event):
         kind = event.get("event")
         if kind == "connected":
+            self.command_replies.reset()
             self.machine_status_at = 0.0
             self.machine_state = None
             self._connected = True
             if self.on_connect:
                 self.on_connect(self, None, {}, 0)
         elif kind == "disconnected":
+            self.command_replies.reset()
             self.machine_status_at = 0.0
             self.machine_state = None
             self._connected = self.signed_ready = False
@@ -281,6 +287,7 @@ class OpenBambooClient:
             # Observe authorization failures without suppressing printer feedback.
             try:
                 body = json.loads(payload)
+                self.command_replies.observe(body)
                 if any(isinstance(item, dict) and item.get("err_code") in
                        (84033543, 84033545) for item in body.values()):
                     self.signed_ready = False
@@ -360,6 +367,7 @@ class OpenBambooClient:
     def disconnect(self):
         self.camera.close(wait=False)
         self._stop.set()
+        self.command_replies.reset()
         self._connected = self.signed_ready = False
         self._discard_queued()
         process = self._process
@@ -450,6 +458,9 @@ class OpenBambooClient:
                         raise ConnectionError("Printer disconnected before publish")
                     reply = self._request("publish", {"payload": payload, "qos": qos})
                     result.rc, result.mid = int(reply["rc"]), int(reply["id"])
+                    raw_sequence = reply.get("sequence_id")
+                    if isinstance(raw_sequence, (str, int)) and not isinstance(raw_sequence, bool):
+                        result.sequence_id = str(raw_sequence)
                     if result.rc != 0:
                         _LOGGER.error("Open Bamboo rejected queued publish (rc=%s)", result.rc)
                         if result.rc == -26:

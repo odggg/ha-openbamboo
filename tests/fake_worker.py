@@ -9,6 +9,7 @@ def emit(value):
     print(json.dumps(value), flush=True)
 
 serial = ""
+sequence = 20000
 for line in sys.stdin:
     request = json.loads(line)
     method, params = request["method"], request["params"]
@@ -45,5 +46,17 @@ for line in sys.stdin:
         if mode == "hang":
             time.sleep(2)
             continue
-        emit({"id": request["id"], "rc": -26 if mode == "reject" else 0})
-        emit({"event": "message", "serial": serial, "payload": params["payload"]})
+        body = json.loads(params["payload"])
+        reply = {"id": request["id"], "rc": -26 if mode == "reject" else 0}
+        if isinstance(body.get("print"), dict) and "command" in body["print"]:
+            sequence = 20000 + ((sequence - 20000 + 1) % 10000)
+            body["print"]["sequence_id"] = str(sequence)
+            reply["sequence_id"] = str(sequence)
+            if mode == "firmware_reject":
+                # The firmware reply may precede the native publish response.
+                emit({"event": "message", "serial": serial, "payload": json.dumps({
+                    "print": {"command": body["print"]["command"],
+                              "sequence_id": str(sequence), "err_code": 84033544,
+                              "result": "fail", "reason": "private text must not escape"}})})
+        emit(reply)
+        emit({"event": "message", "serial": serial, "payload": json.dumps(body)})

@@ -1,5 +1,6 @@
 """Check the real release asset HACS will install before/after publication."""
 import argparse
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -30,8 +31,16 @@ if args.assets:
         manifest = json.loads(package.read("manifest.json"))
         assert manifest["domain"] == "bambu_open_network"
         assert "v" + manifest["version"] == args.tag
+        constants = ast.parse(package.read("const.py").decode("utf-8"))
+        protocol = next(ast.literal_eval(node.value) for node in constants.body
+                        if isinstance(node, ast.Assign)
+                        and any(isinstance(target, ast.Name) and target.id == "PROTOCOL_VERSION"
+                                for target in node.targets))
         for arch in ("amd64", "aarch64"):
-            assert f"bin/{arch}/runtime.json" in package.namelist()
+            runtime = json.loads(package.read(f"bin/{arch}/runtime.json"))
+            assert runtime["protocol"] == protocol, "Mixed native/Python protocol"
+        for filename in ("machine.py", "command_feedback.py", "frontend/machine-panel.js"):
+            assert filename in package.namelist(), "Missing machine-control component"
         assert not any(Path(name).name in (
             "slicer_key.pem", "slicer_cert.pem", "slicer_crl.pem") for name in package.namelist())
 if args.previous:

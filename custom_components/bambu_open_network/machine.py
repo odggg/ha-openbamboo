@@ -9,7 +9,6 @@ import json
 import math
 import threading
 import time
-import uuid
 
 MAX_GCODE_BYTES = 16 * 1024
 STATUS_MAX_AGE = 30
@@ -75,6 +74,7 @@ def telemetry(client):
         "transport": "lan" if client.owner._local_mqtt else "cloud",
         "camera_frame_age": numeric(_read(client, "camera"), "frame_age"),
         "camera_status": _read(_read(client, "camera"), "state"),
+        "command_reply": client.command_replies.latest() if hasattr(client, "command_replies") else None,
     }
 
 
@@ -179,7 +179,8 @@ class MachineController:
             if not status["fresh"]:
                 raise MachineError("Waiting for fresh printer status; reconnect or refresh the printer")
             command = build_command(action, params, status)
-            command["sequence_id"] = str(uuid.uuid4().int % 2_000_000_000 + 1)
+            # The native worker allocates from OBN's shared Studio ID counter.
+            # Do not invent an independent ID before signing.
             payload = json.dumps({"print": command})
             # Expire before transmission if the existing transport queue is busy.
             result = client.publish(f"device/{serial}/request", payload,
@@ -191,7 +192,19 @@ class MachineController:
                 raise MachineError("Command expired before transmission; it was not sent")
             if not result.is_published():
                 raise MachineError("Open Bamboo rejected the command; check connection and signing")
-            return {"sequence_id": command["sequence_id"], "status": "accepted",
-                    "message": "Accepted by Open Bamboo; firmware execution is not confirmed"}
+            sequence = result.sequence_id
+            if not sequence or not sequence.isdecimal() or not 20000 <= int(sequence) < 30000:
+                raise MachineError("Native runtime did not return a Studio command ID; reload the integration")
+            feedback = getattr(client, "command_replies", None)
+            reply = feedback.wait("print", command["command"], sequence, 2) if feedback else None
+            if reply and reply["status"] == "rejected":
+                code = reply["error_code"]
+                detail = f" (firmware code {code})" if code is not None else ""
+                raise MachineError("Printer rejected command" + detail + "; command was not retried")
+            return {"sequence_id": sequence,
+                    "status": "acknowledged" if reply else "accepted",
+                    "message": ("Printer acknowledged the command; physical execution is not confirmed"
+                                if reply else "Submitted through Open Bamboo; no printer acknowledgement received")}
+
         finally:
             lock.release()

@@ -92,6 +92,19 @@ class TransportTests(unittest.TestCase):
         client.disconnect()
         self.assertFalse(client.signed_ready)
 
+    def test_real_pipe_returns_wire_id_and_early_firmware_rejection(self):
+        client = self.make("firmware_reject")
+        self.start(client)
+        result = client.publish("device/TEST123/request",
+            '{"print":{"command":"gcode_line","param":"M105\\n","sequence_id":"1999999999"}}')
+        result.wait_for_publish(3)
+        self.assertTrue(result.is_published())
+        self.assertTrue(20000 <= int(result.sequence_id) < 30000)
+        reply = client.command_replies.wait("print", "gcode_line", result.sequence_id, 1)
+        self.assertEqual(reply["status"], "rejected")
+        self.assertEqual(reply["error_code"], 84033544)
+        self.assertNotIn("reason", reply)
+
     def test_worker_rejection_is_recorded(self):
         client = self.make("reject")
         self.start(client)

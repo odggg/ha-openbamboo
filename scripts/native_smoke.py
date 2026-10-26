@@ -14,7 +14,7 @@ for name in ("loader", "obn-ha-worker"):
 command = [str(runtime / "loader"), "--library-path", str(runtime / "lib"),
            str(runtime / "obn-ha-worker")]
 out = subprocess.run(command + ["--self-test"], capture_output=True, text=True, check=True, timeout=10)
-assert json.loads(out.stdout)["protocol"] == 3
+assert json.loads(out.stdout)["protocol"] == 4
 out = subprocess.run(command + ["--provision-credentials"],
     input=json.dumps({"credentials_directory": "relative-target"}) + "\n",
     capture_output=True, text=True, timeout=10)

@@ -16,7 +16,8 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigE
         "mqtt_clients": [
             {"connected": client.is_connected(), "signed_commands_ready": client.signed_ready,
              "transport": "lan" if client.owner._local_mqtt else "cloud",
-             "camera_status": client.camera.state}
+             "camera_status": client.camera.state,
+             "last_command_reply": client.command_replies.latest()}
             for client in clients
         ],
         "scope": "mqtt_and_cloud_camera",

@@ -35,8 +35,10 @@ def fixture(serial="ONE"):
                 is_connected=lambda: True, machine_status_at=time.monotonic(),
                 machine_state="IDLE")
     owner.client = client
+    wire_counter = [20000]
     def publish(*args, **kwargs):
-        result = transport.PublishResult(rc=0)
+        wire_counter[0] += 1
+        result = transport.PublishResult(rc=0, sequence_id=str(wire_counter[0]))
         result._done.set()
         return result
     client.publish = Mock(side_effect=publish)
@@ -137,7 +139,8 @@ class DeliveryTests(unittest.TestCase):
         self.assertGreater(kwargs["expires_at"], time.monotonic())
         self.assertNotEqual(one["sequence_id"], two["sequence_id"])
         self.assertEqual(one["status"], "accepted")
-        self.assertIn("not confirmed", one["message"])
+        self.assertIn("no printer acknowledgement", one["message"])
+        self.assertNotIn("sequence_id", json.loads(args[1])["print"])
         with self.assertRaises(machine.MachineError):
             self.manager.execute("TWO", "home", {})
         self.assertEqual(self.client.publish.call_count, 2)
@@ -178,7 +181,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_concurrent_command_is_rejected_without_queueing(self):
         entered, finish = threading.Event(), threading.Event()
-        result = transport.PublishResult(rc=0)
+        result = transport.PublishResult(rc=0, sequence_id="20001")
         def wait(timeout):
             entered.set()
             finish.wait(2)

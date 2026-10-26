@@ -1,4 +1,4 @@
-# Bambu Open Network v0.5.1
+# Bambu Open Network v0.5.2
 
 ## ⚠️ Voraussetzung: ha-bambulab muss installiert sein
 
@@ -162,6 +162,15 @@ Lokale Kameras, FTP und Datei-Uploads bleiben Funktionen der Basisintegration un
 deren lokale Einstellungen.
 
 ### Maschinensteuerung und G-Code
+
+v0.5.2 verwendet vor der Signierung den gemeinsamen Studio-Befehlszähler von
+Open Bamboo (20000–29999) statt beliebiger Zufalls-IDs. Passende Druckerantworten
+werden als **quittiert**, **abgelehnt** mit Firmwarecode oder **ohne
+Druckerquittung übermittelt** angezeigt. Keine dieser Anzeigen bestätigt
+unabhängig die mechanische Ausführung. Späte Antworten erscheinen im Verlauf.
+Nach dem Update Home Assistant vollständig neu starten und das Panel mit
+Strg+F5 neu laden.
+
 
 Die Befehle laufen über die vorhandene Open-Bamboo-Verbindung und deren Signierung.
 Der Drucker muss den App-Zertifikatsaustausch bestätigen, bevor erforderliche signierte

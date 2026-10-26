@@ -34,6 +34,7 @@ int bambu_network_change_user(void*, std::string);
 int bambu_network_send_message_to_printer(void*, std::string, std::string, int, int);
 int bambu_network_send_message(void*, std::string, std::string, int, int);
 void bambu_network_install_device_cert(void*, std::string, bool);
+int obn_ha_next_sequence_id();
 bool obn_ha_signing_material();
 bool obn_ha_fetch_credentials();
 bool obn_ha_camera_self_test();
@@ -95,6 +96,17 @@ static bool read_line(std::string& line)
     return false;
 }
 
+static std::string assign_print_sequence(json& body)
+{
+    if (!body.contains("print") || !body["print"].is_object()
+            || !body["print"].contains("command")) return {};
+    // Never modify an envelope that a caller has already signed.
+    if (body.contains("header")) throw std::runtime_error("Pre-signed print is not supported");
+    const auto sequence = std::to_string(obn_ha_next_sequence_id());
+    body["print"]["sequence_id"] = sequence;
+    return sequence;
+}
+
 int main(int argc, char** argv)
 {
     ::umask(0077);
@@ -123,7 +135,24 @@ int main(int argc, char** argv)
     }
     if (argc == 2 && std::string(argv[1]) == "--self-test") {
         if (!obn_ha_camera_self_test()) return 2;
-        emit({{"protocol", 3}, {"obn_commit", OBN_PINNED_COMMIT}});
+        int previous = obn_ha_next_sequence_id();
+        for (int i = 0; i < 10020; ++i) {
+            const int current = obn_ha_next_sequence_id();
+            if (previous < 20000 || previous >= 30000 || current != 20000 + ((previous - 20000 + 1) % 10000))
+                return 3;
+            previous = current;
+        }
+        for (const char* gcode : {"G28\n", "M104 S200\n", "M140 S60\n"}) {
+            json body = {{"print", {{"command", "gcode_line"},
+                {"param", gcode}, {"sequence_id", "1999999999"}}}};
+            const auto sequence = assign_print_sequence(body);
+            if (std::stoi(sequence) < 20000 || std::stoi(sequence) >= 30000
+                    || body["print"]["sequence_id"] != sequence
+                    || body["print"]["param"] != gcode) return 4;
+        }
+        json info = {{"info", {{"command", "get_version"}, {"sequence_id", "0"}}}};
+        if (!assign_print_sequence(info).empty() || info["info"]["sequence_id"] != "0") return 5;
+        emit({{"protocol", 4}, {"obn_commit", OBN_PINNED_COMMIT}});
         return 0;
     }
     void* agent = nullptr;
@@ -151,6 +180,7 @@ int main(int argc, char** argv)
             const std::string method = request.at("method");
             const json params = request.value("params", json::object());
             int rc = -1;
+            std::string wire_sequence;
             if (method == "init" && !agent) {
                 serial = params.at("serial").get<std::string>();
                 if (serial.empty() || serial.find_first_not_of(
@@ -258,11 +288,15 @@ int main(int argc, char** argv)
                 camera_context.requested = false;
                 rc = 0;
             } else if (method == "publish" && agent) {
-                const std::string payload = params.at("payload");
+                std::string payload = params.at("payload");
                 const int qos = params.value("qos", 0);
-                const auto body = json::parse(payload);
+                auto body = json::parse(payload);
                 if (!body.is_object() || (qos != 0 && qos != 1))
                     throw std::runtime_error("Invalid publish");
+                // Assign the wire ID before OBN encrypts/signs the command.
+                // A separate Python random ID is not a Studio command ID.
+                wire_sequence = assign_print_sequence(body);
+                if (!wire_sequence.empty()) payload = body.dump();
                 // OBN may report device_cert_installed as an internal event;
                 // only this worker controls readiness, never filenames alone.
                 if (!connected) rc = -4;
@@ -273,7 +307,9 @@ int main(int argc, char** argv)
             } else {
                 rc = -19;
             }
-            emit({{"id", id}, {"rc", rc}});
+            json response = {{"id", id}, {"rc", rc}};
+            if (!wire_sequence.empty()) response["sequence_id"] = wire_sequence;
+            emit(response);
         }
         cleanup();
         return 0;

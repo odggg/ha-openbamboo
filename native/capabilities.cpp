@@ -5,6 +5,7 @@
 #include "obn/appcert.hpp"
 #include "obn/config.hpp"
 #include "obn/signing.hpp"
+#include "obn/mqtt_seq.hpp"
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <chrono>
@@ -50,4 +51,11 @@ OBN_ABI bool obn_ha_fetch_credentials()
 {
     std::string error;
     return obn::appcert::fetch_and_store(&error);
+}
+
+// Use exactly the counter shared with OBN's app-cert/liveview command builders.
+// It is seeded once per native process and stays in Studio's 20000..29999 window.
+OBN_ABI int obn_ha_next_sequence_id()
+{
+    return std::stoi(obn::next_mqtt_seq_id());
 }

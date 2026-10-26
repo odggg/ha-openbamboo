@@ -29,7 +29,7 @@ const { chromium } = require("playwright");
         if (message.type.endsWith("/machines")) return { printers: structuredClone(window.devices) };
         window.commands.push(message);
         if (window.failNext) { window.failNext = false; throw new Error("Delivery is unknown; no retry"); }
-        return { sequence_id: String(window.commands.length), status: "accepted" };
+        return { sequence_id: String(20000 + window.commands.length), status: "accepted" };
       }};
       document.body.append(panel);
       window.panel = panel;
@@ -67,6 +67,24 @@ const { chromium } = require("playwright");
     assert.equal(await q("#log img").count(), 0);
     assert.equal(await page.evaluate(() => window.pwned), undefined);
     assert.match(await q("#notice").textContent(), /nicht bestätigt/);
+
+    // A late correlated firmware rejection must replace the submit-only status.
+    await page.evaluate(() => {
+      window.devices[0].command_reply = { section: "print", command: "gcode_line",
+        sequence_id: "20002", status: "rejected", error_code: 84033544 };
+      return window.panel.refresh();
+    });
+    assert.match(await q("#notice").textContent(), /84033544/);
+    assert.match(await q("#log").textContent(), /abgelehnt/);
+    const rejectionMessage = await q("#notice").textContent();
+    await page.evaluate(() => {
+      window.devices[0].command_reply = null;
+      window.devices[1].command_reply = { section: "print", command: "gcode_line",
+        sequence_id: "20002", status: "rejected", error_code: 99999 };
+      return window.panel.refresh();
+    });
+    assert.equal(await q("#notice").textContent(), rejectionMessage);
+    assert.doesNotMatch(await q("#log").textContent(), /99999/);
 
     await page.evaluate(() => { window.failNext = true; });
     await q("#send").click();

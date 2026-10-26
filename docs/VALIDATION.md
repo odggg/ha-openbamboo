@@ -170,3 +170,27 @@ Home Assistant installation, cloud login or physical printer was tested.
   is no second native video connection. Model/firmware hardware coverage remains limited.
 - Publication requires successful Python/browser jobs, both native architecture
   builds and the regular HACS release asset validation in the release workflow.
+
+## v0.5.2 command transport regression
+
+User report: an A1 showed native publish acceptance, but homing/nozzle/bed controls
+did not change the device. The machine controller emitted arbitrary random IDs
+outside the Studio window documented by the pinned OBN source.
+
+The worker now uses the DSO's shared next_mqtt_seq_id() allocator and normalizes
+print command IDs before field encryption/signing. Its real compiled self-test
+covers range/monotonicity/wrap and preserves G28, M104 and M140 command text.
+Protocol v4 prevents old native bundles being accepted with the new Python adapter.
+
+112 Python tests and both Chromium suites pass locally. Tests distinguish native
+acceptance, explicit firmware acknowledgement and firmware rejection; they cover
+early reply-before-RPC ordering over real subprocess pipes, session resets,
+printer/section/command/ID isolation, bounded/redacted feedback and late UI errors.
+
+No physical homing or heating was sent during development. The user's A1 must
+still verify whether this resolves the reported hardware behavior; unresolved
+firmware-specific sequence typing is not claimed fixed without device feedback.
+
+Protocol evidence:
+https://github.com/persano/open-bamboo-networking/blob/85c2b52445721bccc49534e82f52650037189d4f/include/obn/mqtt_seq.hpp
+https://github.com/persano/open-bamboo-networking/blob/85c2b52445721bccc49534e82f52650037189d4f/research/06.02-mqtt.md

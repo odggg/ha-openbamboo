@@ -1,19 +1,29 @@
-Bambu Open Network v0.5.1 embeds the selected printer's camera directly in Bambu Control.
+Bambu Open Network v0.5.2 corrects command IDs and reports firmware acknowledgements/rejections.
 
-- Watch the Cloud camera beside the axis, extruder and temperature controls.
-- The camera follows the selected printer automatically; the previous image is removed immediately.
-- Existing authenticated Home Assistant MJPEG camera proxy; no camera URL, extra card or credentials to configure.
-- Reconnect button and automatic retry with backoff for failed camera requests.
-- Stale-frame detection uses the backend decoder timestamp, so a static scene is not mistaken for a frozen feed.
-- Disconnected/unavailable cameras show a status instead of retaining the previous printer image.
-- Image requests stop on panel close or when the page is hidden and resume on return.
-- Responsive desktop/mobile layout; the larger camera dialog remains available.
+The machine panel previously generated arbitrary random sequence IDs up to two billion.
+The native worker now assigns print commands using Open Bamboo's own shared, randomly
+seeded Studio counter in the 20000–29999 range, before encryption and signing.
+This also covers print commands sent by the upstream integration.
 
-Update Bambu Open Network in HACS, restart Home Assistant, then refresh Bambu Control.
-The camera appears automatically when selecting a connected printer with a Cloud camera entity.
+- Native protocol v4 returns the actual wire sequence ID to Home Assistant.
+- Protocol v3 runtimes are rejected instead of silently mixing old/new sending behavior.
+- Printer replies are correlated by printer connection, section, command and wire ID.
+- Immediate firmware rejections raise an error with the numeric firmware code.
+- Late matching acknowledgements/rejections appear in the panel history.
+- Native acceptance without a matching firmware reply stays explicitly unconfirmed.
+- Redacted last-command feedback is available in diagnostics. G-code, account tokens,
+  access codes and raw firmware reason strings are not included.
+- Commands are not automatically retried.
 
-Validation: 103 Python regression tests, existing machine-panel browser tests and a real multipart MJPEG browser fixture passed locally. Browser coverage includes simultaneous controls, printer switching, scoped-token rotation, stale/error recovery, stream reuse, page visibility and connection cleanup.
-The release workflow also builds/tests native Linux amd64 and aarch64 runtimes and validates the regular HACS release assets.
-No physical printer motion or heating was triggered during development tests.
+Update in HACS, restart Home Assistant fully and reload Bambu Control with Ctrl+F5.
 
-Guide: https://github.com/odggg/ha-openbamboo/blob/main/docs/MACHINE_CONTROL_DE.md
+Validation: 112 Python tests and both browser suites pass locally. Added coverage for
+native acceptance followed by an early firmware rejection over real subprocess pipes,
+correlation/redaction/session reset, explicit acknowledgements and late UI feedback.
+The compiled worker self-test checks the Studio ID range, 10,000-value wrap,
+normalization of homing/nozzle/bed commands and preservation of their G-code.
+Both native architecture builds and package checks run before publication.
+
+The reported A1 hardware failure has not been physically retested during development.
+This fixes a concrete protocol mismatch and makes any remaining firmware rejection visible;
+it does not claim that every A1 firmware combination is confirmed working.

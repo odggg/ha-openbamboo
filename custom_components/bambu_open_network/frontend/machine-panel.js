@@ -8,6 +8,8 @@ class BambuMachinePanel extends HTMLElement {
     this.busy = false;
     this.polling = false;
     this.generation = 0;
+    this.sentCommands = new Map();
+    this.seenReplies = new Set();
   }
 
   set hass(value) {
@@ -175,6 +177,7 @@ class BambuMachinePanel extends HTMLElement {
   updateStatus() {
     if (!this.built) return;
     const item = this.items.find(item => item.serial === this.serial);
+    for (const printer of this.items) this.observeCommandReply(printer);
     const ready = Boolean(item?.ready && item?.fresh && !this.busy);
     const idle = ["IDLE", "FINISH", "FAILED"].includes(item?.state);
     this.shadowRoot.querySelectorAll(".control").forEach(button => { button.disabled = !ready; });
@@ -297,6 +300,24 @@ class BambuMachinePanel extends HTMLElement {
     this.$("#cameraStatus").classList.toggle("error", error);
   }
 
+  observeCommandReply(printer) {
+    const reply = printer.command_reply;
+    if (!reply) return;
+    const key = printer.serial + ":" + reply.sequence_id;
+    if (!this.sentCommands.has(key)) return;
+    const observation = key + ":" + reply.status + ":" + reply.error_code;
+    if (this.seenReplies.has(observation)) return;
+    this.seenReplies.add(observation);
+    if (this.seenReplies.size > 100) this.seenReplies.delete(this.seenReplies.values().next().value);
+    const rejected = reply.status === "rejected";
+    const code = reply.error_code == null ? "" : " (" + reply.error_code + ")";
+    const message = rejected
+      ? this.text("Drucker hat den Befehl abgelehnt", "Printer rejected the command") + code
+      : this.text("Drucker hat den Befehl quittiert; Ausführung nicht unabhängig bestätigt.", "Printer acknowledged the command; execution not independently confirmed.");
+    this.log(printer.name + " · #" + reply.sequence_id + " · " + message);
+    if (printer.serial === this.serial && !this.busy) this.notice(message, rejected);
+  }
+
   notice(message, error = false) {
     this.$("#notice").textContent = message;
     this.$("#notice").classList.toggle("error", error);
@@ -321,7 +342,11 @@ class BambuMachinePanel extends HTMLElement {
     try {
       const result = await this.hass.callWS({ type: "bambu_open_network/machine_command", serial, action, params });
       if (!this.isConnected || generation !== this.generation) return;
-      const message = this.text("Übermittelt an Open Bamboo. Ausführung am Drucker nicht bestätigt.", "Accepted by Open Bamboo. Firmware execution not confirmed.");
+      this.sentCommands.set(serial + ":" + result.sequence_id, action);
+      if (this.sentCommands.size > 100) this.sentCommands.delete(this.sentCommands.keys().next().value);
+      const message = result.status === "acknowledged"
+        ? this.text("Drucker hat den Befehl quittiert; Ausführung nicht unabhängig bestätigt.", "Printer acknowledged the command; execution not independently confirmed.")
+        : this.text("An Open Bamboo übermittelt. Keine Druckerquittung erhalten; Ausführung nicht bestätigt.", "Submitted through Open Bamboo. No printer acknowledgement received; execution not confirmed.");
       this.notice(message);
       this.log(name + " · #" + result.sequence_id + " · " + message);
     } catch (error) {
