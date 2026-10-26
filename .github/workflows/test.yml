@@ -22,10 +22,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --no-package-lock --prefix .test-deps-js playwright@1.62.1
-      - run: .test-deps-js/node_modules/.bin/playwright install --with-deps chromium
       - run: node --check custom_components/bambu_open_network/frontend/machine-panel.js
       - run: |
           node tests/frontend/machine-panel.test.cjs
           node tests/frontend/inline-camera.test.cjs
         env:
           NODE_PATH: ./.test-deps-js/node_modules
+          BAMBU_BROWSER_CHANNEL: chrome
