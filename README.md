@@ -1,5 +1,7 @@
 # Bambu Open Network v0.5.2
 
+Built on [Open Bamboo Networking](https://github.com/ClusterM/open-bamboo-networking) by ClusterM and contributors, using [persano’s fork](https://github.com/persano/open-bamboo-networking) for cloud connectivity, signed commands, cloud cameras and automatic certificate provisioning.
+
 ## Reclaim your printer's freedom
 
 ## ⚠️ Required: ha-bambulab must be installed
